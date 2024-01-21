@@ -50,6 +50,9 @@ TagManager:
   - name: Background
     uniqueID: 1430479581
     locked: 0
+  - name: VFX
+    uniqueID: 1241965595
+    locked: 0
   - name: Platform
     uniqueID: 676118897
     locked: 0
