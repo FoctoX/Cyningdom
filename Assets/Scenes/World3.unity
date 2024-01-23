@@ -28340,7 +28340,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -28380,7 +28380,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf5b5c280aa8b7d49b99dcb297104780, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 100
+  playerSprite: {fileID: 2079102089}
+  movementSpeed: 10
+  jumpForce: 10
 --- !u!1 &1746046446
 GameObject:
   m_ObjectHideFlags: 0
@@ -28769,7 +28771,7 @@ Animator:
   m_GameObject: {fileID: 2079102089}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 3c2a5b7097b0fe44394328c0bdb9252e, type: 2}
+  m_Controller: {fileID: 9100000, guid: 211faa5fe4fa4e248a1d602e784befe8, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

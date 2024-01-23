@@ -5,12 +5,20 @@ using UnityEngine;
 public class PlayerMoveScript : MonoBehaviour
 {
     private Rigidbody2D rb;
+    public GameObject playerSprite;
+    private SpriteRenderer sprite;
+    private Animator anim;
+
+    float directionX;
     public float movementSpeed;
+    public float jumpForce;
     private Vector2 playerLocation;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        sprite = playerSprite.GetComponent<SpriteRenderer>();
+        anim = playerSprite.GetComponent<Animator>();
     }
 
     // FixedUpdate digunakan untuk menggerakkan objek dengan Rigidbody
@@ -18,21 +26,35 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         CameraMove();
+        PlayerAnimation();
     }
 
     private void PlayerMove()
-    { 
+    {
+        directionX = Input.GetAxisRaw("Horizontal");
+        rb.velocity = new Vector2(directionX * movementSpeed, rb.velocity.y);
+
         if (Input.GetKey(KeyCode.W))
         {
-            rb.velocity = Vector2.up * movementSpeed * Time.deltaTime;
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce); 
         }
-        if (Input.GetKey(KeyCode.A))
+    }
+
+    private void PlayerAnimation()
+    {
+        if (rb.velocity.x < 0)
         {
-            rb.velocity = Vector2.left * movementSpeed * Time.deltaTime;
+            sprite.flipX = true;
+            anim.SetBool("Run", true);
         }
-        if (Input.GetKey(KeyCode.D))
+        if (rb.velocity.x > 0)
         {
-            rb.velocity = Vector2.right * movementSpeed * Time.deltaTime;
+            sprite.flipX = false;
+            anim.SetBool("Run", true);
+        }
+        if (rb.velocity.x == 0)
+        {
+            anim.SetBool("Run", false);
         }
     }
 
