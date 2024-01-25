@@ -11,15 +11,14 @@ public class PlayerMoveScript : MonoBehaviour
     [SerializeField] private LayerMask platformMask;
 
     private bool isJumping = false;
-    private float jumpCooldown = 0.1f; 
-    private float jumpCooldownTimer = 0f;
     private int maxJumps = 2;
-    private int jumpsRemaining;
+    [SerializeField] private int jumpsRemaining;
 
     float directionX;
     public float movementSpeed;
     public float jumpForce;
-    private Vector2 playerLocation;
+    public float dashSpeed;
+    public int attackState;
 
     private void Awake()
     {
@@ -29,12 +28,10 @@ public class PlayerMoveScript : MonoBehaviour
         playerColl = GetComponent<Collider2D>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         PlayerMove();
-        CameraMove();
         PlayerAnimation();
-        UpdateJumpCooldown();
     }
 
     private void PlayerMove()
@@ -45,27 +42,22 @@ public class PlayerMoveScript : MonoBehaviour
         if (Grounded())
         {
             jumpsRemaining = maxJumps;
-            isJumping = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0 && !isJumping)
+        if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
         {
             jumpsRemaining--;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            isJumping = true;
-            jumpCooldownTimer = jumpCooldown;
         }
-    }
 
-    private void UpdateJumpCooldown()
-    {
-        if (jumpCooldownTimer > 0)
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            jumpCooldownTimer -= Time.fixedDeltaTime;
-        }
-        else
-        {
-            isJumping = false;
+            rb.velocity = new Vector2(directionX * dashSpeed, rb.velocity.y);
+            anim.SetInteger("Attack", attackState++);
+            if (attackState >= 3)
+            {
+                attackState = 0;
+            }
         }
     }
 
@@ -85,7 +77,7 @@ public class PlayerMoveScript : MonoBehaviour
         {
             anim.SetBool("Run", false);
         }
-        if (rb.velocity.y > 0.1)
+        if (rb.velocity.y > 1)
         {
             anim.SetBool("Jump", true);
         }
@@ -93,16 +85,11 @@ public class PlayerMoveScript : MonoBehaviour
         {
             anim.SetBool("Jump", false);
         }
-    }
 
-    private void CameraMove()
-    {
-        playerLocation = transform.position;
-        Camera.main.transform.position = new Vector3(playerLocation.x, playerLocation.y, Camera.main.transform.position.z);
     }
 
     private bool Grounded()
     {
-        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.5f, platformMask);
+        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.2f, platformMask);
     }
 }
