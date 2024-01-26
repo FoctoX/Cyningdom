@@ -19,6 +19,7 @@ public class PlayerMoveScript : MonoBehaviour
     public float jumpForce;
     public float dashSpeed;
     public int attackState;
+    [SerializeField] private GameObject sky;
 
     private void Awake()
     {
@@ -32,6 +33,7 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         PlayerAnimation();
+        FollowingPlayer();
     }
 
     private void PlayerMove()
@@ -86,6 +88,11 @@ public class PlayerMoveScript : MonoBehaviour
             anim.SetBool("Jump", false);
         }
 
+    }
+
+    private void FollowingPlayer()
+    {
+        sky.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);
     }
 
     private bool Grounded()
