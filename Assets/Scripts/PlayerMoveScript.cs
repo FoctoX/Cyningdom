@@ -33,7 +33,6 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         PlayerAnimation();
-        FollowingPlayer();
     }
 
     private void PlayerMove()
