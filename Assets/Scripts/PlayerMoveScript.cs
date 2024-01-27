@@ -89,10 +89,6 @@ public class PlayerMoveScript : MonoBehaviour
 
     }
 
-    private void FollowingPlayer()
-    {
-        sky.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);
-    }
 
     private bool Grounded()
     {
