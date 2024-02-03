@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMoveScript : MonoBehaviour
@@ -10,7 +8,6 @@ public class PlayerMoveScript : MonoBehaviour
     private Collider2D playerColl;
     [SerializeField] private LayerMask platformMask;
 
-    private bool isJumping = false;
     private int maxJumps = 2;
     [SerializeField] private int jumpsRemaining;
 
@@ -20,6 +17,12 @@ public class PlayerMoveScript : MonoBehaviour
     public float dashSpeed;
     public int attackState;
     [SerializeField] private GameObject sky;
+
+    [SerializeField] private Transform attackPoint;
+    [SerializeField] private float attackRadius;
+    [SerializeField] private LayerMask enemies;
+
+    private enum MovementState { idle, running, jumping, falling };
 
     private void Awake()
     {
@@ -33,6 +36,7 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         PlayerAnimation();
+        PlayerCombat();
     }
 
     private void PlayerMove()
@@ -50,48 +54,66 @@ public class PlayerMoveScript : MonoBehaviour
             jumpsRemaining--;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
-
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            rb.velocity = new Vector2(directionX * dashSpeed, rb.velocity.y);
-            anim.SetInteger("Attack", attackState++);
-            if (attackState >= 3)
-            {
-                attackState = 0;
-            }
-        }
     }
 
     private void PlayerAnimation()
     {
-        if (rb.velocity.x < 0)
+        MovementState state;
+
+        if (directionX < 0)
         {
-            sprite.flipX = true;
-            anim.SetBool("Run", true);
+            state = MovementState.running;
+            transform.localScale = new Vector3(-7, transform.localScale.y, transform.localScale.z); 
         }
-        if (rb.velocity.x > 0)
+        else if (directionX > 0)
         {
-            sprite.flipX = false;
-            anim.SetBool("Run", true);
-        }
-        if (rb.velocity.x == 0)
-        {
-            anim.SetBool("Run", false);
-        }
-        if (rb.velocity.y > 1)
-        {
-            anim.SetBool("Jump", true);
+            state = MovementState.running;
+            transform.localScale = new Vector3(7, transform.localScale.y, transform.localScale.z);
         }
         else
         {
-            anim.SetBool("Jump", false);
+            state = MovementState.idle;
         }
 
+        if (rb.velocity.y > .1f)
+        {
+            state = MovementState.jumping;
+        }
+        else if (rb.velocity.y < -.1f)
+        {
+            state = MovementState.falling;
+        }
+
+        anim.SetInteger("state", (int)state);
     }
 
+    private void PlayerCombat()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            anim.SetTrigger("attack");
+        }
+
+        Collider2D[] hittedEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, enemies);
+
+        foreach (Collider2D enemy in hittedEnemies)
+        {
+            // do something
+        }
+    }
 
     private bool Grounded()
     {
-        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.2f, platformMask);
+        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.1f, platformMask);
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (attackPoint == null)
+        {
+            return;
+        }
+
+        Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
     }
 }
