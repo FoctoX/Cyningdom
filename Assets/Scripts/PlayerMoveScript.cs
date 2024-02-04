@@ -26,6 +26,8 @@ public class PlayerMoveScript : MonoBehaviour
 
     [SerializeField] private int playerDemage;
     private float critChance;
+    [SerializeField] private GameObject critParticleObject;
+    private ParticleSystem critParticle;
     private bool canAttack = true;
     private bool canMove = true;
 
@@ -37,6 +39,7 @@ public class PlayerMoveScript : MonoBehaviour
         anim = GetComponent<Animator>();
         sprite = GetComponent<SpriteRenderer>();
         playerColl = GetComponent<Collider2D>();
+        critParticle = critParticleObject.GetComponent<ParticleSystem>();
     }
 
     void Update()
@@ -57,11 +60,30 @@ public class PlayerMoveScript : MonoBehaviour
                 jumpsRemaining = maxJumps;
             }
 
-            if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
+            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0)
             {
+                Debug.Log("Jump");
+                float jumpTime = 1f;
+                float jumpTimer = 1f;
                 jumpsRemaining--;
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                if (jumpTime >= 0f)
+                {
+                    Debug.Log("JumpGo");
+                    jumpTime -= Time.deltaTime;
+                    float jumpFactor = 1 - (jumpTime / jumpTimer);
+                    float jumpHeight = Mathf.Lerp(jumpForce, 0f, jumpFactor);
+                    rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
+                }
             }
+        }
+
+        if (transform.localScale.x > 0)
+        {
+            critParticleObject.transform.localScale = new Vector2(1, critParticleObject.transform.localScale.y);
+        }
+        else
+        {
+            critParticleObject.transform.localScale = new Vector2(-1, critParticleObject.transform.localScale.y);
         }
     }
 
@@ -114,6 +136,7 @@ public class PlayerMoveScript : MonoBehaviour
                 Debug.Log("Critical" + critChance);
                 enemyScript.health -= playerDemage * 2;
                 CinemachineControllerScript.Instance.CameraShake(5f, .25f);
+                critParticle.Play();
                 enemyScript.FlashHitted();
                 Time.timeScale = 0f;
                 yield return new WaitForSecondsRealtime(0.25f);
