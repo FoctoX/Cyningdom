@@ -1,3 +1,6 @@
+using Cinemachine;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMoveScript : MonoBehaviour
@@ -9,18 +12,22 @@ public class PlayerMoveScript : MonoBehaviour
     [SerializeField] private LayerMask platformMask;
 
     private int maxJumps = 2;
-    [SerializeField] private int jumpsRemaining;
+    private int jumpsRemaining;
 
     float directionX;
     public float movementSpeed;
     public float jumpForce;
     public float dashSpeed;
     public int attackState;
-    [SerializeField] private GameObject sky;
 
     [SerializeField] private Transform attackPoint;
     [SerializeField] private float attackRadius;
     [SerializeField] private LayerMask enemies;
+
+    [SerializeField] private int playerDemage;
+    private float critChance;
+    private bool canAttack = true;
+    private bool canMove = true;
 
     private enum MovementState { idle, running, jumping, falling };
 
@@ -36,23 +43,25 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         PlayerAnimation();
-        PlayerCombat();
     }
 
     private void PlayerMove()
     {
-        directionX = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(directionX * movementSpeed, rb.velocity.y);
-
-        if (Grounded())
+        if (canMove)
         {
-            jumpsRemaining = maxJumps;
-        }
+            directionX = Input.GetAxisRaw("Horizontal");
+            rb.velocity = new Vector2(directionX * movementSpeed, rb.velocity.y);
 
-        if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
-        {
-            jumpsRemaining--;
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            if (Grounded())
+            {
+                jumpsRemaining = maxJumps;
+            }
+
+            if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
+            {
+                jumpsRemaining--;
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            }
         }
     }
 
@@ -85,21 +94,56 @@ public class PlayerMoveScript : MonoBehaviour
         }
 
         anim.SetInteger("state", (int)state);
-    }
 
-    private void PlayerCombat()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (canAttack && Input.GetKeyDown(KeyCode.Space))
         {
             anim.SetTrigger("attack");
         }
+    }
 
+    private IEnumerator PlayerCombatRoutine()
+    {
         Collider2D[] hittedEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, enemies);
 
         foreach (Collider2D enemy in hittedEnemies)
         {
-            // do something
+            critChance = Random.Range(0f,1f);
+            EnemyScript enemyScript = enemy.GetComponent<EnemyScript>();
+            if (critChance < .1f)
+            {
+                Debug.Log("Critical" + critChance);
+                enemyScript.health -= playerDemage * 2;
+                CinemachineControllerScript.Instance.CameraShake(5f, .25f);
+                enemyScript.FlashHitted();
+                Time.timeScale = 0f;
+                yield return new WaitForSecondsRealtime(0.25f);
+                Time.timeScale = 1f;
+            }
+            else
+            {
+                enemyScript.health -= playerDemage;
+                CinemachineControllerScript.Instance.CameraShake(1f, .1f);
+                enemyScript.FlashHitted();
+                Time.timeScale = 0;
+                yield return new WaitForSecondsRealtime(0.1f);
+                Time.timeScale = 1;
+            }
+            enemyScript.EnemyCondition();
         }
+
+        yield return null;
+    }
+
+    public void AttackStart()
+    {
+        canMove = false;
+        canAttack = false;
+    }
+
+    public void AttackEnd()
+    {
+        canMove = true;
+        canAttack = true;
     }
 
     private bool Grounded()
