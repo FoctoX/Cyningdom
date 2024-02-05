@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerMoveScript : MonoBehaviour
 {
+    public static PlayerMoveScript Instance { get; private set; }
+
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
     private Animator anim;
@@ -25,9 +27,12 @@ public class PlayerMoveScript : MonoBehaviour
     [SerializeField] private LayerMask enemies;
 
     [SerializeField] private int playerDemage;
+    [SerializeField] private TextMesh textDemage;
+    public int totalDemage;
     private float critChance;
     [SerializeField] private GameObject critParticleObject;
     private ParticleSystem critParticle;
+
     private bool canAttack = true;
     private bool canMove = true;
 
@@ -35,6 +40,7 @@ public class PlayerMoveScript : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sprite = GetComponent<SpriteRenderer>();
@@ -131,23 +137,27 @@ public class PlayerMoveScript : MonoBehaviour
             if (critChance < .1f)
             {
                 Debug.Log("Critical" + critChance);
-                enemyScript.health -= playerDemage * 2;
+                totalDemage = playerDemage * 2;
+                enemyScript.health -= totalDemage;
+                HealthBarScript.Instance.HealthbarSystem();
                 CinemachineControllerScript.Instance.CameraShake(5f, .25f);
                 critParticle.Play();
+                TextCriticalDemageSystem();
                 enemyScript.FlashHitted();
                 enemyScript.EnemyCondition();
-                HealthBarScript.Instance.HealthbarSystem();
                 Time.timeScale = 0f;
                 yield return new WaitForSecondsRealtime(0.25f);
                 Time.timeScale = 1f;
             }
             else
             {
+                totalDemage = playerDemage;
                 enemyScript.health -= playerDemage;
+                HealthBarScript.Instance.HealthbarSystem();
                 CinemachineControllerScript.Instance.CameraShake(1f, .1f);
+                TextDemageSystem();
                 enemyScript.FlashHitted();
                 enemyScript.EnemyCondition();
-                HealthBarScript.Instance.HealthbarSystem();
                 Time.timeScale = 0;
                 yield return new WaitForSecondsRealtime(0.1f);
                 Time.timeScale = 1;
@@ -167,6 +177,20 @@ public class PlayerMoveScript : MonoBehaviour
     {
         canMove = true;
         canAttack = true;
+    }
+
+    public void TextDemageSystem()
+    {
+        textDemage.color = Color.white;
+        textDemage.fontSize = 100;
+        textDemage.text = totalDemage.ToString();
+    }
+
+    public void TextCriticalDemageSystem()
+    {
+        textDemage.color = Color.red;
+        textDemage.fontSize = 150;
+        textDemage.text = totalDemage.ToString();
     }
 
     private bool Grounded()

@@ -9,22 +9,12 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private Material flash;
     private Coroutine flashCoroutine;
     public bool canHitted;
+    [SerializeField] private GameObject textDemage;
+    [SerializeField] private float textDemageFix;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     public void EnemyCondition()
@@ -49,6 +39,13 @@ public class EnemyScript : MonoBehaviour
     {
         canHitted = false;
         spriteRenderer.material = flash;
+
+        GameObject textDemageInstance = Instantiate(textDemage, transform.position, Quaternion.identity);
+        textDemageInstance.transform.parent = transform;
+        float randomX = Random.Range(-1f, 1f);
+        float randomY = Random.Range(-1f, 1f);
+        Vector3 randomOffset = new Vector3(randomX, randomY + textDemageFix, 0f);
+        textDemageInstance.transform.localPosition = randomOffset;
 
         yield return new WaitForSeconds(0.125f);
 
