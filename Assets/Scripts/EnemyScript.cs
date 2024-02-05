@@ -1,10 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyScript : MonoBehaviour
 {
-    public int health = 100;
+    public float health;
     private SpriteRenderer spriteRenderer;
     [SerializeField] private Material normal;
     [SerializeField] private Material flash;

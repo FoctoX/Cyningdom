@@ -1,6 +1,4 @@
-using Cinemachine;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMoveScript : MonoBehaviour
@@ -13,6 +11,8 @@ public class PlayerMoveScript : MonoBehaviour
 
     private int maxJumps = 2;
     private int jumpsRemaining;
+    private float jumpTime;
+    [SerializeField] private AnimationCurve jumpCurve;
 
     float directionX;
     public float movementSpeed;
@@ -60,20 +60,17 @@ public class PlayerMoveScript : MonoBehaviour
                 jumpsRemaining = maxJumps;
             }
 
-            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0)
+            if (Input.GetKeyDown(KeyCode.W))
             {
-                Debug.Log("Jump");
-                float jumpTime = 1f;
-                float jumpTimer = 1f;
+                jumpTime = Mathf.Clamp(.25f, 0f, .25f);
                 jumpsRemaining--;
-                if (jumpTime >= 0f)
-                {
-                    Debug.Log("JumpGo");
-                    jumpTime -= Time.deltaTime;
-                    float jumpFactor = 1 - (jumpTime / jumpTimer);
-                    float jumpHeight = Mathf.Lerp(jumpForce, 0f, jumpFactor);
-                    rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
-                }
+                rb.velocity += Vector2.up * jumpForce * 2;
+            }
+
+            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTime > 0f)
+            {
+                jumpTime -= Time.deltaTime;
+                rb.velocity += Vector2.up * jumpForce;
             }
         }
 
@@ -138,6 +135,8 @@ public class PlayerMoveScript : MonoBehaviour
                 CinemachineControllerScript.Instance.CameraShake(5f, .25f);
                 critParticle.Play();
                 enemyScript.FlashHitted();
+                enemyScript.EnemyCondition();
+                HealthBarScript.Instance.HealthbarSystem();
                 Time.timeScale = 0f;
                 yield return new WaitForSecondsRealtime(0.25f);
                 Time.timeScale = 1f;
@@ -147,11 +146,12 @@ public class PlayerMoveScript : MonoBehaviour
                 enemyScript.health -= playerDemage;
                 CinemachineControllerScript.Instance.CameraShake(1f, .1f);
                 enemyScript.FlashHitted();
+                enemyScript.EnemyCondition();
+                HealthBarScript.Instance.HealthbarSystem();
                 Time.timeScale = 0;
                 yield return new WaitForSecondsRealtime(0.1f);
                 Time.timeScale = 1;
             }
-            enemyScript.EnemyCondition();
         }
 
         yield return null;

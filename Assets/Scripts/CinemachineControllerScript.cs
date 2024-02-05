@@ -1,10 +1,8 @@
 using Cinemachine;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CinemachineControllerScript : MonoBehaviour
-{
+{   
     public static CinemachineControllerScript Instance { get; private set; }
 
     private CinemachineVirtualCamera virtualCamera;
