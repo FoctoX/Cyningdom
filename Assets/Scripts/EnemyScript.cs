@@ -40,11 +40,11 @@ public class EnemyScript : MonoBehaviour
         canHitted = false;
         spriteRenderer.material = flash;
 
-        GameObject textDemageInstance = Instantiate(textDemage, transform.position, Quaternion.identity);
-        textDemageInstance.transform.parent = transform;
+        GameObject textDemageInstance = Instantiate(textDemage, this.transform.position, Quaternion.identity);
         float randomX = Random.Range(-1f, 1f);
         float randomY = Random.Range(-1f, 1f);
         Vector3 randomOffset = new Vector3(randomX, randomY + textDemageFix, 0f);
+        randomOffset += this.transform.position;
         textDemageInstance.transform.localPosition = randomOffset;
 
         yield return new WaitForSeconds(0.125f);
@@ -54,4 +54,5 @@ public class EnemyScript : MonoBehaviour
         canHitted = true;
         flashCoroutine = null;
     }
+
 }

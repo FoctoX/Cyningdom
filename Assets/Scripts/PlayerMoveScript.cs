@@ -13,7 +13,7 @@ public class PlayerMoveScript : MonoBehaviour
 
     private int maxJumps = 2;
     private int jumpsRemaining;
-    private float jumpTime;
+    private float jumpTimer;
     [SerializeField] private AnimationCurve jumpCurve;
 
     float directionX;
@@ -32,6 +32,7 @@ public class PlayerMoveScript : MonoBehaviour
     private float critChance;
     [SerializeField] private GameObject critParticleObject;
     private ParticleSystem critParticle;
+    [SerializeField] private float knockbackPower;
 
     private bool canAttack = true;
     private bool canMove = true;
@@ -68,15 +69,16 @@ public class PlayerMoveScript : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.W))
             {
-                jumpTime = Mathf.Clamp(.25f, 0f, .25f);
+                jumpTimer = .25f;
                 jumpsRemaining--;
-                rb.velocity += Vector2.up * jumpForce * 2;
+                rb.velocity = new Vector2(jumpForce, rb.velocity.y);
             }
 
-            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTime > 0f)
+            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
             {
-                jumpTime -= Time.deltaTime;
-                rb.velocity += Vector2.up * jumpForce;
+                jumpTimer -= Time.deltaTime;
+                float jumpHeight = Mathf.Lerp(jumpForce, 0f, 1 - (jumpTimer/.25f));
+                rb.velocity += Vector2.up * jumpHeight;
             }
         }
 
@@ -133,7 +135,9 @@ public class PlayerMoveScript : MonoBehaviour
         foreach (Collider2D enemy in hittedEnemies)
         {
             critChance = Random.Range(0f,1f);
+            Vector2 knockbackDir = (enemy.transform.position - transform.position).normalized;
             EnemyScript enemyScript = enemy.GetComponent<EnemyScript>();
+            Rigidbody2D rbEnemy = enemy.GetComponent<Rigidbody2D>();
             if (critChance < .1f)
             {
                 Debug.Log("Critical" + critChance);
@@ -147,6 +151,11 @@ public class PlayerMoveScript : MonoBehaviour
                 enemyScript.EnemyCondition();
                 Time.timeScale = 0f;
                 yield return new WaitForSecondsRealtime(0.25f);
+                if (rbEnemy != null)
+                {
+                    rbEnemy.AddForce(Vector2.up * knockbackPower * 2, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
+                }
                 Time.timeScale = 1f;
             }
             else
@@ -160,6 +169,11 @@ public class PlayerMoveScript : MonoBehaviour
                 enemyScript.EnemyCondition();
                 Time.timeScale = 0;
                 yield return new WaitForSecondsRealtime(0.1f);
+                if (rbEnemy != null)
+                {
+                    rbEnemy.AddForce(Vector2.up * knockbackPower, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(knockbackDir * knockbackPower, ForceMode2D.Impulse);
+                }
                 Time.timeScale = 1;
             }
         }
