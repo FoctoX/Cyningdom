@@ -1,23 +1,34 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static GameManager Instance { get; private set; }
+
+    [SerializeField] private Image weaponIcon;
+    [SerializeField] private Sprite[] icon;
+
+    private void Awake()
     {
-        
+        Instance = this;
+        IconChange();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void IconChange()
     {
-        
-    }
-
-    public void CameraShakeHit()
-    {
-        
+        switch (PlayerMoveScript.Instance.currentWeapon)
+        {
+            case 0:
+                weaponIcon.sprite = icon[0];
+                break;
+            case 1:
+                weaponIcon.sprite = icon[1];
+                break;
+            case 2:
+                weaponIcon.sprite = icon[2];
+                break;
+        }
     }
 }

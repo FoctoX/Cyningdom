@@ -20,7 +20,6 @@ public class PlayerMoveScript : MonoBehaviour
     public float movementSpeed;
     public float jumpForce;
     public float dashSpeed;
-    public int attackState;
 
     [SerializeField] private Transform attackPoint;
     [SerializeField] private float attackRadius;
@@ -32,12 +31,14 @@ public class PlayerMoveScript : MonoBehaviour
     private float critChance;
     [SerializeField] private GameObject critParticleObject;
     private ParticleSystem critParticle;
-    [SerializeField] private float knockbackPower;
+    private float knockbackPower;
 
-    private bool canAttack = true;
-    private bool canMove = true;
+    private float shakeIntens, shakeTime;
+
+    private bool canAttack = true, canMove = true;
 
     private enum MovementState { idle, running, jumping, falling };
+    [SerializeField] public float currentWeapon;
 
     private void Awake()
     {
@@ -49,10 +50,11 @@ public class PlayerMoveScript : MonoBehaviour
         critParticle = critParticleObject.GetComponent<ParticleSystem>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         PlayerMove();
         PlayerAnimation();
+        PlayerWeapon();
     }
 
     private void PlayerMove()
@@ -71,7 +73,7 @@ public class PlayerMoveScript : MonoBehaviour
             {
                 jumpTimer = .25f;
                 jumpsRemaining--;
-                rb.velocity = new Vector2(jumpForce, rb.velocity.y);
+                rb.velocity = new Vector2(jumpForce * 2, rb.velocity.y);
             }
 
             if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
@@ -94,37 +96,79 @@ public class PlayerMoveScript : MonoBehaviour
 
     private void PlayerAnimation()
     {
-        MovementState state;
+        MovementState moveState;
 
         if (directionX < 0)
         {
-            state = MovementState.running;
-            transform.localScale = new Vector3(-7, transform.localScale.y, transform.localScale.z); 
+            moveState = MovementState.running;
+            transform.localScale = new Vector3(-7, transform.localScale.y, transform.localScale.z);
         }
         else if (directionX > 0)
         {
-            state = MovementState.running;
+            moveState = MovementState.running;
             transform.localScale = new Vector3(7, transform.localScale.y, transform.localScale.z);
         }
         else
         {
-            state = MovementState.idle;
+            moveState = MovementState.idle;
         }
 
         if (rb.velocity.y > .1f)
         {
-            state = MovementState.jumping;
+            moveState = MovementState.jumping;
         }
         else if (rb.velocity.y < -.1f)
         {
-            state = MovementState.falling;
+            moveState = MovementState.falling;
         }
 
-        anim.SetInteger("state", (int)state);
+        anim.SetInteger("state", (int)moveState);
+    }
 
-        if (canAttack && Input.GetKeyDown(KeyCode.Space))
+    private void PlayerWeapon()
+    {
+        if (canAttack)
         {
-            anim.SetTrigger("attack");
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                currentWeapon += 1f;
+                currentWeapon = Mathf.Repeat(currentWeapon, 3f);
+                GameManager.Instance.IconChange();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                switch (currentWeapon)
+                {
+                    case 0:
+                        anim.SetTrigger("atkSmall");
+                        attackPoint.transform.localPosition = new Vector2(.17f, -.03f);
+                        attackRadius = 1.1f;
+                        playerDemage = 25;
+                        shakeIntens = 1f;
+                        shakeTime = .1f;
+                        knockbackPower = 1f;
+                        break;
+                    case 1:
+                        anim.SetTrigger("atk");
+                        attackPoint.transform.localPosition = new Vector2(.3f, 0f);
+                        attackRadius = 1.75f;
+                        playerDemage = 50;
+                        shakeIntens = 2f;
+                        shakeTime = .125f;
+                        knockbackPower = 2f;
+                        break;
+                    case 2:
+                        anim.SetTrigger("atkBig");
+                        attackPoint.transform.localPosition = new Vector2(.37f, .15f);
+                        attackRadius = 2.75f;
+                        playerDemage = 150;
+                        shakeIntens = 10f;
+                        shakeTime = .25f;
+                        knockbackPower = 10f;
+                        break;
+                }
+            }
         }
     }
 
@@ -140,22 +184,21 @@ public class PlayerMoveScript : MonoBehaviour
             Rigidbody2D rbEnemy = enemy.GetComponent<Rigidbody2D>();
             if (critChance < .1f)
             {
-                Debug.Log("Critical" + critChance);
                 totalDemage = playerDemage * 2;
                 enemyScript.health -= totalDemage;
                 HealthBarScript.Instance.HealthbarSystem();
-                CinemachineControllerScript.Instance.CameraShake(5f, .25f);
+                CinemachineControllerScript.Instance.CameraShake(shakeIntens * 2, shakeTime * 2);
                 critParticle.Play();
                 TextCriticalDemageSystem();
                 enemyScript.FlashHitted();
                 enemyScript.EnemyCondition();
                 Time.timeScale = 0f;
-                yield return new WaitForSecondsRealtime(0.25f);
                 if (rbEnemy != null)
                 {
-                    rbEnemy.AddForce(Vector2.up * knockbackPower * 2, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(Vector2.up * knockbackPower * 2 / 2, ForceMode2D.Impulse);
                     rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
                 }
+                yield return new WaitForSecondsRealtime(shakeTime);
                 Time.timeScale = 1f;
             }
             else
@@ -163,17 +206,17 @@ public class PlayerMoveScript : MonoBehaviour
                 totalDemage = playerDemage;
                 enemyScript.health -= playerDemage;
                 HealthBarScript.Instance.HealthbarSystem();
-                CinemachineControllerScript.Instance.CameraShake(1f, .1f);
+                CinemachineControllerScript.Instance.CameraShake(shakeIntens, shakeTime);
                 TextDemageSystem();
                 enemyScript.FlashHitted();
                 enemyScript.EnemyCondition();
                 Time.timeScale = 0;
-                yield return new WaitForSecondsRealtime(0.1f);
                 if (rbEnemy != null)
                 {
-                    rbEnemy.AddForce(Vector2.up * knockbackPower, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(Vector2.up * knockbackPower / 2, ForceMode2D.Impulse);
                     rbEnemy.AddForce(knockbackDir * knockbackPower, ForceMode2D.Impulse);
                 }
+                yield return new WaitForSecondsRealtime(shakeTime);
                 Time.timeScale = 1;
             }
         }
