@@ -1,36 +1,41 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class PlayerMoveScript : MonoBehaviour
 {
-    public static PlayerMoveScript Instance { get; private set; }
+    public float health = 300f, energy = 100f, exp = 100f;
+
+    private SpriteRenderer sprite;
+    [SerializeField] private Material normal;
+    [SerializeField] private Material white;
+    private Coroutine takeHitRoutine;
 
     private Rigidbody2D rb;
-    private SpriteRenderer sprite;
-    private Animator anim;
+    public Animator anim;
     private Collider2D playerColl;
-    [SerializeField] private LayerMask platformMask;
 
-    private int maxJumps = 2;
-    private int jumpsRemaining;
+    [SerializeField] private LayerMask platformMask;
+    [SerializeField] private LayerMask enemies;
+    [SerializeField] private LayerMask chestMask;
+
+    [SerializeField] private int jumpsRemaining;
     private float jumpTimer;
-    [SerializeField] private AnimationCurve jumpCurve;
 
     float directionX;
     public float movementSpeed;
     public float jumpForce;
-    public float dashSpeed;
 
-    [SerializeField] private Transform attackPoint;
-    [SerializeField] private float attackRadius;
-    [SerializeField] private LayerMask enemies;
+    private Transform attackPoint;
+    private float attackRadius;
 
-    [SerializeField] private int playerDemage;
+    private int playerDemage;
     [SerializeField] private TextMesh textDemage;
     public int totalDemage;
     private float critChance;
-    [SerializeField] private GameObject critParticleObject;
-    private ParticleSystem critParticle;
+    [SerializeField] private Transform critParticleObject;
+    [SerializeField] private ParticleSystem critParticle;
     private float knockbackPower;
 
     private float shakeIntens, shakeTime;
@@ -38,15 +43,18 @@ public class PlayerMoveScript : MonoBehaviour
     private bool canAttack = true, canMove = true;
 
     private enum MovementState { idle, running, jumping, falling };
-    [SerializeField] public float currentWeapon;
+
+    public float currentWeapon;
+    public float hadWeapon = 0;
 
     private void Awake()
     {
-        Instance = this;
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sprite = GetComponent<SpriteRenderer>();
         playerColl = GetComponent<Collider2D>();
+        attackPoint = transform.Find("Attack Radius");
+        critParticleObject = transform.Find("Critical Particle");
         critParticle = critParticleObject.GetComponent<ParticleSystem>();
     }
 
@@ -54,6 +62,10 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerMove();
         PlayerAnimation();
+    }
+
+    private void Update()
+    {
         PlayerWeapon();
     }
 
@@ -66,17 +78,17 @@ public class PlayerMoveScript : MonoBehaviour
 
             if (Grounded())
             {
-                jumpsRemaining = maxJumps;
+                jumpsRemaining = 2;
             }
 
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
             {
                 jumpTimer = .25f;
                 jumpsRemaining--;
-                rb.velocity = new Vector2(jumpForce * 2, rb.velocity.y);
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2);
             }
 
-            if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
+            else if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
             {
                 jumpTimer -= Time.deltaTime;
                 float jumpHeight = Mathf.Lerp(jumpForce, 0f, 1 - (jumpTimer/.25f));
@@ -129,10 +141,9 @@ public class PlayerMoveScript : MonoBehaviour
     {
         if (canAttack)
         {
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.Q) && hadWeapon > 0)
             {
-                currentWeapon += 1f;
-                currentWeapon = Mathf.Repeat(currentWeapon, 3f);
+                currentWeapon = Mathf.Repeat(currentWeapon, hadWeapon) + 1;
                 GameManager.Instance.IconChange();
             }
 
@@ -140,32 +151,44 @@ public class PlayerMoveScript : MonoBehaviour
             {
                 switch (currentWeapon)
                 {
-                    case 0:
-                        anim.SetTrigger("atkSmall");
-                        attackPoint.transform.localPosition = new Vector2(.17f, -.03f);
-                        attackRadius = 1.1f;
-                        playerDemage = 25;
-                        shakeIntens = 1f;
-                        shakeTime = .1f;
-                        knockbackPower = 1f;
-                        break;
                     case 1:
-                        anim.SetTrigger("atk");
-                        attackPoint.transform.localPosition = new Vector2(.3f, 0f);
-                        attackRadius = 1.75f;
-                        playerDemage = 50;
-                        shakeIntens = 2f;
-                        shakeTime = .125f;
-                        knockbackPower = 2f;
+                        if (energy >= 1f)
+                        {
+                            anim.SetTrigger("atkSmall");
+                            attackPoint.transform.localPosition = new Vector2(.17f, -.03f);
+                            attackRadius = 1.1f;
+                            playerDemage = 25;
+                            shakeIntens = 0f;
+                            shakeTime = 0f;
+                            knockbackPower = 1f;
+                            energy -= 1f;
+                        }
                         break;
                     case 2:
-                        anim.SetTrigger("atkBig");
-                        attackPoint.transform.localPosition = new Vector2(.37f, .15f);
-                        attackRadius = 2.75f;
-                        playerDemage = 150;
-                        shakeIntens = 10f;
-                        shakeTime = .25f;
-                        knockbackPower = 10f;
+                        if (energy >= 5f)
+                        {
+                            anim.SetTrigger("atk");
+                            attackPoint.transform.localPosition = new Vector2(.3f, 0f);
+                            attackRadius = 1.75f;
+                            playerDemage = 50;
+                            shakeIntens = 1f;
+                            shakeTime = .1f;
+                            knockbackPower = 5f;
+                            energy -= 5f;
+                        }
+                        break;
+                    case 3:
+                        if (energy >= 25f)
+                        {
+                            anim.SetTrigger("atkBig");
+                            attackPoint.transform.localPosition = new Vector2(.37f, .15f);
+                            attackRadius = 2.75f;
+                            playerDemage = 300;
+                            shakeIntens = 5f;
+                            shakeTime = .15f;
+                            knockbackPower = 20f;
+                            energy -= 25f;
+                        }
                         break;
                 }
             }
@@ -178,15 +201,17 @@ public class PlayerMoveScript : MonoBehaviour
 
         foreach (Collider2D enemy in hittedEnemies)
         {
-            critChance = Random.Range(0f,1f);
             Vector2 knockbackDir = (enemy.transform.position - transform.position).normalized;
             EnemyScript enemyScript = enemy.GetComponent<EnemyScript>();
             Rigidbody2D rbEnemy = enemy.GetComponent<Rigidbody2D>();
+            HealthBarScript healthbarScript = enemy.gameObject.transform.parent.gameObject.transform.Find("Healthbar").gameObject.GetComponent<HealthBarScript>();
+            critChance = Random.Range(0f,1f);
             if (critChance < .1f)
             {
+                if (enemyScript.anim != null) enemyScript.anim.SetTrigger("takeHit");
                 totalDemage = playerDemage * 2;
                 enemyScript.health -= totalDemage;
-                HealthBarScript.Instance.HealthbarSystem();
+                healthbarScript.HealthbarSystem();
                 CinemachineControllerScript.Instance.CameraShake(shakeIntens * 2, shakeTime * 2);
                 critParticle.Play();
                 TextCriticalDemageSystem();
@@ -195,7 +220,7 @@ public class PlayerMoveScript : MonoBehaviour
                 Time.timeScale = 0f;
                 if (rbEnemy != null)
                 {
-                    rbEnemy.AddForce(Vector2.up * knockbackPower * 2 / 2, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(Vector2.up * knockbackPower, ForceMode2D.Impulse);
                     rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
                 }
                 yield return new WaitForSecondsRealtime(shakeTime);
@@ -204,8 +229,12 @@ public class PlayerMoveScript : MonoBehaviour
             else
             {
                 totalDemage = playerDemage;
+                if ((totalDemage / enemyScript.health) >= .25f && enemyScript.anim != null)
+                {
+                    enemyScript.anim.SetTrigger("takeHit");
+                }
                 enemyScript.health -= playerDemage;
-                HealthBarScript.Instance.HealthbarSystem();
+                healthbarScript.HealthbarSystem();
                 CinemachineControllerScript.Instance.CameraShake(shakeIntens, shakeTime);
                 TextDemageSystem();
                 enemyScript.FlashHitted();
@@ -224,13 +253,35 @@ public class PlayerMoveScript : MonoBehaviour
         yield return null;
     }
 
-    public void AttackStart()
+    public void TakeDemage()
+    {
+        if (takeHitRoutine != null) { StopCoroutine(TakeDemageRoutine()); }
+        StartCoroutine(TakeDemageRoutine());
+    }
+
+    public IEnumerator TakeDemageRoutine()
+    {
+        sprite.material = white;
+
+        yield return new WaitForSecondsRealtime(.1f);
+
+        sprite.material = normal;
+
+        if (health <= 0f)
+        {
+            Destroy(gameObject);
+        }
+
+        yield return null;
+    }
+
+    private void CannotMove()
     {
         canMove = false;
         canAttack = false;
     }
 
-    public void AttackEnd()
+    private void CanMove()
     {
         canMove = true;
         canAttack = true;
@@ -250,18 +301,30 @@ public class PlayerMoveScript : MonoBehaviour
         textDemage.text = totalDemage.ToString();
     }
 
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.tag == "Trap")
+        {
+            health = 0f;
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.collider.tag == "Trap")
+        {
+            health = 0f;
+        }
+    }
+
     private bool Grounded()
     {
-        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.1f, platformMask);
+        return Physics2D.BoxCast(playerColl.bounds.center, playerColl.bounds.size, 0f, Vector2.down, 0.01f, platformMask);
     }
 
     private void OnDrawGizmos()
     {
-        if (attackPoint == null)
-        {
-            return;
-        }
-
+        if (attackPoint == null) { return; }
         Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
     }
 }

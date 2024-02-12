@@ -9,11 +9,17 @@ public class CinemachineControllerScript : MonoBehaviour
     private float shakeTime;
     private float shakeTimeMax;
     private float startIntensity;
+    private Transform player;
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
         virtualCamera = GetComponent<CinemachineVirtualCamera>();
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+        virtualCamera.LookAt = player;
     }
 
     // Update is called once per frame
