@@ -14,7 +14,7 @@ public class HealthBarScript : MonoBehaviour
 
     private void Awake()
     {
-        healthbarPositionYFix = transform.position.y;
+        healthbarPositionYFix = transform.localPosition.y;
         parent = gameObject.transform.parent.gameObject;
         spriteGFX = parent.transform.Find("Sprite").gameObject;
         currentScale = transform.localScale;
