@@ -40,7 +40,8 @@ public class PlayerMoveScript : MonoBehaviour
 
     private float shakeIntens, shakeTime;
 
-    private bool canAttack = true, canMove = true;
+    public bool canDo = true;
+    public bool life = true;
 
     private enum MovementState { idle, running, jumping, falling };
 
@@ -58,20 +59,21 @@ public class PlayerMoveScript : MonoBehaviour
         critParticle = critParticleObject.GetComponent<ParticleSystem>();
     }
 
-    void FixedUpdate()
-    {
-        PlayerMove();
-        PlayerAnimation();
-    }
-
     private void Update()
     {
         PlayerWeapon();
+        PlayerAnimation();
+        PlayerMove();
+    }
+
+    private void OnEnable()
+    {
+        
     }
 
     private void PlayerMove()
     {
-        if (canMove)
+        if (canDo)
         {
             directionX = Input.GetAxisRaw("Horizontal");
             rb.velocity = new Vector2(directionX * movementSpeed, rb.velocity.y);
@@ -85,7 +87,7 @@ public class PlayerMoveScript : MonoBehaviour
             {
                 jumpTimer = .25f;
                 jumpsRemaining--;
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2);
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2 * Time.deltaTime);
             }
 
             else if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
@@ -139,7 +141,7 @@ public class PlayerMoveScript : MonoBehaviour
 
     private void PlayerWeapon()
     {
-        if (canAttack)
+        if (canDo)
         {
             if (Input.GetKeyDown(KeyCode.Q) && hadWeapon > 0)
             {
@@ -158,9 +160,9 @@ public class PlayerMoveScript : MonoBehaviour
                             attackPoint.transform.localPosition = new Vector2(.17f, -.03f);
                             attackRadius = 1.1f;
                             playerDemage = 25;
-                            shakeIntens = 0f;
-                            shakeTime = 0f;
-                            knockbackPower = 1f;
+                            shakeIntens = .5f;
+                            shakeTime = .05f;
+                            knockbackPower = 25f;
                             energy -= 1f;
                         }
                         break;
@@ -173,7 +175,7 @@ public class PlayerMoveScript : MonoBehaviour
                             playerDemage = 50;
                             shakeIntens = 1f;
                             shakeTime = .1f;
-                            knockbackPower = 5f;
+                            knockbackPower = 50f;
                             energy -= 5f;
                         }
                         break;
@@ -183,10 +185,10 @@ public class PlayerMoveScript : MonoBehaviour
                             anim.SetTrigger("atkBig");
                             attackPoint.transform.localPosition = new Vector2(.37f, .15f);
                             attackRadius = 2.75f;
-                            playerDemage = 300;
+                            playerDemage = 500;
                             shakeIntens = 5f;
                             shakeTime = .15f;
-                            knockbackPower = 20f;
+                            knockbackPower = 500f;
                             energy -= 25f;
                         }
                         break;
@@ -220,7 +222,7 @@ public class PlayerMoveScript : MonoBehaviour
                 Time.timeScale = 0f;
                 if (rbEnemy != null)
                 {
-                    rbEnemy.AddForce(Vector2.up * knockbackPower, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(transform.up * knockbackPower, ForceMode2D.Impulse);
                     rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
                 }
                 yield return new WaitForSecondsRealtime(shakeTime);
@@ -242,7 +244,7 @@ public class PlayerMoveScript : MonoBehaviour
                 Time.timeScale = 0;
                 if (rbEnemy != null)
                 {
-                    rbEnemy.AddForce(Vector2.up * knockbackPower / 2, ForceMode2D.Impulse);
+                    rbEnemy.AddForce(transform.up * knockbackPower / 2, ForceMode2D.Impulse);
                     rbEnemy.AddForce(knockbackDir * knockbackPower, ForceMode2D.Impulse);
                 }
                 yield return new WaitForSecondsRealtime(shakeTime);
@@ -268,8 +270,10 @@ public class PlayerMoveScript : MonoBehaviour
         sprite.material = normal;
 
         if (health <= 0f)
-        {
-            Destroy(gameObject);
+        {            
+            life = false;
+            canDo = false;
+            anim.SetTrigger("dead");
         }
 
         yield return null;
@@ -277,14 +281,12 @@ public class PlayerMoveScript : MonoBehaviour
 
     private void CannotMove()
     {
-        canMove = false;
-        canAttack = false;
+        canDo = false;
     }
 
     private void CanMove()
     {
-        canMove = true;
-        canAttack = true;
+        canDo = true;
     }
 
     public void TextDemageSystem()
@@ -299,14 +301,6 @@ public class PlayerMoveScript : MonoBehaviour
         textDemage.color = Color.red;
         textDemage.fontSize = 150;
         textDemage.text = totalDemage.ToString();
-    }
-
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.tag == "Trap")
-        {
-            health = 0f;
-        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)

@@ -1,21 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ChestScript : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
     [SerializeField] Sprite[] sprites;
-    [SerializeField] private GameObject interact;
-    private float playerWeaponHad;
+    [SerializeField] GameObject obtainingPanel;
+    private PlayerMoveScript playerMoveScript;
     private int isOpened = 0;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        interact = gameObject.transform.Find("Interact").gameObject;
         spriteRenderer.sprite = isOpened == 0 ? sprites[0] : sprites[1];
+        playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
     }
 
     // Start is called before the first frame update
@@ -32,9 +29,8 @@ public class ChestScript : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.tag == "Player" && isOpened == 0)
+        if (collision.tag == "Player" && isOpened == 0 && playerMoveScript.hadWeapon < 3)
         {
-            interact.SetActive(true);
             if (Input.GetKeyDown(KeyCode.E))
             {
                 spriteRenderer.sprite = sprites[1];

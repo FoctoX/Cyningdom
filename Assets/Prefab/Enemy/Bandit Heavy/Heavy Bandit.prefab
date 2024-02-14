@@ -51,14 +51,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 903cc0db16e53b749a9252184af5662e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 1000
+  health: 1500
   attackPoint: {fileID: 3207411266515890962}
   detectPoint: {fileID: 7101430968877907447}
   detectGround: {fileID: 2387043274869979552}
-  demage: 50
-  knockbackPower: 20
+  demage: 150
+  knockbackPower: 25
   attackRadius: 2
-  detectRadius: 25
+  detectRadius: 10
   groundRadius: 0.5
   playerMask:
     serializedVersion: 2
@@ -416,7 +416,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4446391300194656718}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.01, y: -0.77, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

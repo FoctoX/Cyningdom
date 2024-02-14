@@ -43,6 +43,9 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private float sprintSpeed;
 
     private bool canDo = true;
+    private PlayerMoveScript playerMoveScript;
+
+    [SerializeField] private bool Boss;
 
     private void Awake()
     {
@@ -55,8 +58,8 @@ public class EnemyScript : MonoBehaviour
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
+        playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
         maxHealth = health;
-        sprintSpeed = speed * 2;
     }
 
     private void Start()
@@ -94,8 +97,9 @@ public class EnemyScript : MonoBehaviour
             state = MovementState.idle;
         }
 
-        if (canDo && isPlayerOnArea())
+        if (canDo && isPlayerOnArea() && playerMoveScript.life)
         {
+            sprintSpeed = speed * 2;
             if (target.position.x - 1 >= transform.position.x)
             {
                 rb.velocity = new(Mathf.Abs(sprintSpeed), transform.position.y);
@@ -133,7 +137,7 @@ public class EnemyScript : MonoBehaviour
 
     private void AttackOnAnim()
     {
-        if (Physics2D.OverlapCircle(attackPoint.position, attackRadius, playerMask) && canDo)
+        if (Physics2D.OverlapCircle(attackPoint.position, attackRadius, playerMask) && canDo && playerMoveScript.life)
         {
             anim.SetTrigger("attack");
         }
@@ -198,6 +202,18 @@ public class EnemyScript : MonoBehaviour
             }
         }
         yield return null;
+    }
+
+    private void BossConditions()
+    {
+        if (Boss)
+        {
+            if (health / maxHealth < .25f && Boss == true)
+            {
+                Boss = false;
+                speed *= 2;
+            }
+        }
     }
 
     private void CanDo()
