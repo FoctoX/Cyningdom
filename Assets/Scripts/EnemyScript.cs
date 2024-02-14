@@ -6,7 +6,7 @@ using Random = UnityEngine.Random;
 public class EnemyScript : MonoBehaviour
 {
     public float health;
-    private float maxHealth;
+    public float maxHealth;
 
     [SerializeField] private Transform attackPoint;
     [SerializeField] private Transform detectPoint;
@@ -43,6 +43,8 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private float sprintSpeed;
 
     private bool canDo = true;
+    public bool life = true;
+
     private PlayerMoveScript playerMoveScript;
 
     [SerializeField] private bool Boss;
@@ -80,14 +82,6 @@ public class EnemyScript : MonoBehaviour
     {
         MovementState state;
 
-        if (rb.velocity.x > 1f)
-        {
-            transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y);
-        }
-        else if (rb.velocity.x < -1f)
-        {
-            transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
-        }
         if (rb.velocity.x > .1f || rb.velocity.x < -.1f)
         {
             state = MovementState.running;
@@ -102,16 +96,26 @@ public class EnemyScript : MonoBehaviour
             sprintSpeed = speed * 2;
             if (target.position.x - 1 >= transform.position.x)
             {
-                rb.velocity = new(Mathf.Abs(sprintSpeed), transform.position.y);
+                rb.velocity = new Vector2(Mathf.Abs(sprintSpeed), transform.position.y);
+                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y);
             }
             else if (target.position.x + 1 <= transform.position.x)
             {
                 rb.velocity = new Vector2(Mathf.Abs(sprintSpeed) * -1, transform.position.y);
+                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
             }
         }
 
         else if (canDo && !isPlayerOnArea() && Grounding())
         {
+            if (rb.velocity.x > 1f)
+            {
+                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y);
+            }
+            else if (rb.velocity.x < -1f)
+            {
+                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
+            }
             if (edgeGround())
             {
                 rb.velocity = new(speed, transform.position.y);
@@ -147,8 +151,33 @@ public class EnemyScript : MonoBehaviour
     {
         if (health <= 0)
         {
-            Destroy(gameObject.transform.parent.gameObject);
+            StartCoroutine("EnemyDied");
         }
+    }
+
+    private IEnumerator EnemyDied()
+    {
+        life = false;
+        float timer = 1;
+        float restOfTimer = 0;
+        float value;
+
+        anim.SetTrigger("dead");
+
+        yield return new WaitForSeconds(1f);
+
+        while (restOfTimer < timer)
+        {
+            restOfTimer += Time.deltaTime;
+            value = (restOfTimer / timer);
+            spriteRenderer.color = new Color(1,1,1, value);
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        Destroy(transform.parent.gameObject);
+
+        yield return null;
     }
 
     public void FlashHitted()

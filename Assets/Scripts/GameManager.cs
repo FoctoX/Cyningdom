@@ -130,6 +130,7 @@ public class GameManager : MonoBehaviour
                 VFX.sprite = null;
                 VFX.color = new Color(0,0,0,0);
                 playerMoveScript.hadWeapon += 1;
+                playerMoveScript.currentWeapon = 1;
                 break;
             case 1:
                 weaponName.text = "Sword";
@@ -137,6 +138,7 @@ public class GameManager : MonoBehaviour
                 VFX.sprite = null;
                 VFX.color = new Color(0, 0, 0, 0);
                 playerMoveScript.hadWeapon += 1;
+                playerMoveScript.currentWeapon = 2;
                 break;
             case 2:
                 weaponName.text = "The Greatsword";
@@ -144,9 +146,11 @@ public class GameManager : MonoBehaviour
                 VFX.sprite = icon[3];
                 VFX.color = new Color(1, 1, 1, 1);
                 playerMoveScript.hadWeapon += 1;
+                playerMoveScript.currentWeapon = 3;
                 break;
         }
         obtainPanel.SetActive(true);
+        IconChange();
     }
 
     public void NormalTimeScale()
@@ -168,7 +172,6 @@ public class GameManager : MonoBehaviour
             playerMoveScript.hadWeapon = 3;
             playerMoveScript.currentWeapon = 3;
             WeaponObtaining();
-            IconChange();
         }
         transform.Find("Canvas").transform.Find("Cheat Panel").gameObject.SetActive(false);
     }

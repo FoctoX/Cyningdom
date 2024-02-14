@@ -162,7 +162,7 @@ public class PlayerMoveScript : MonoBehaviour
                             playerDemage = 25;
                             shakeIntens = .5f;
                             shakeTime = .05f;
-                            knockbackPower = 25f;
+                            knockbackPower = 5f;
                             energy -= 1f;
                         }
                         break;
@@ -175,7 +175,7 @@ public class PlayerMoveScript : MonoBehaviour
                             playerDemage = 50;
                             shakeIntens = 1f;
                             shakeTime = .1f;
-                            knockbackPower = 50f;
+                            knockbackPower = 20f;
                             energy -= 5f;
                         }
                         break;
@@ -188,7 +188,7 @@ public class PlayerMoveScript : MonoBehaviour
                             playerDemage = 500;
                             shakeIntens = 5f;
                             shakeTime = .15f;
-                            knockbackPower = 500f;
+                            knockbackPower = 100f;
                             energy -= 25f;
                         }
                         break;
@@ -208,47 +208,50 @@ public class PlayerMoveScript : MonoBehaviour
             Rigidbody2D rbEnemy = enemy.GetComponent<Rigidbody2D>();
             HealthBarScript healthbarScript = enemy.gameObject.transform.parent.gameObject.transform.Find("Healthbar").gameObject.GetComponent<HealthBarScript>();
             critChance = Random.Range(0f,1f);
-            if (critChance < .1f)
+            if (enemyScript.life)
             {
-                if (enemyScript.anim != null) enemyScript.anim.SetTrigger("takeHit");
-                totalDemage = playerDemage * 2;
-                enemyScript.health -= totalDemage;
-                healthbarScript.HealthbarSystem();
-                CinemachineControllerScript.Instance.CameraShake(shakeIntens * 2, shakeTime * 2);
-                critParticle.Play();
-                TextCriticalDemageSystem();
-                enemyScript.FlashHitted();
-                enemyScript.EnemyCondition();
-                Time.timeScale = 0f;
-                if (rbEnemy != null)
+                if (critChance < .1f)
                 {
-                    rbEnemy.AddForce(transform.up * knockbackPower, ForceMode2D.Impulse);
-                    rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
+                    if (enemyScript.anim != null) enemyScript.anim.SetTrigger("takeHit");
+                    totalDemage = playerDemage * 2;
+                    enemyScript.health = Mathf.Clamp(enemyScript.health - totalDemage, 0f, enemyScript.maxHealth);
+                    healthbarScript.HealthbarSystem();
+                    CinemachineControllerScript.Instance.CameraShake(shakeIntens * 2, shakeTime * 2);
+                    critParticle.Play();
+                    TextCriticalDemageSystem();
+                    enemyScript.FlashHitted();
+                    enemyScript.EnemyCondition();
+                    Time.timeScale = 0f;
+                    if (rbEnemy != null)
+                    {
+                        rbEnemy.AddForce(transform.up * knockbackPower * 2, ForceMode2D.Impulse);
+                        rbEnemy.AddForce(knockbackDir * knockbackPower * 2, ForceMode2D.Impulse);
+                    }
+                    yield return new WaitForSecondsRealtime(shakeTime);
+                    Time.timeScale = 1f;
                 }
-                yield return new WaitForSecondsRealtime(shakeTime);
-                Time.timeScale = 1f;
-            }
-            else
-            {
-                totalDemage = playerDemage;
-                if ((totalDemage / enemyScript.health) >= .25f && enemyScript.anim != null)
+                else if (enemyScript.life)
                 {
-                    enemyScript.anim.SetTrigger("takeHit");
+                    totalDemage = playerDemage;
+                    if ((totalDemage / enemyScript.health) >= .25f && enemyScript.anim != null)
+                    {
+                        enemyScript.anim.SetTrigger("takeHit");
+                    }
+                    enemyScript.health = Mathf.Clamp(enemyScript.health - totalDemage, 0f, enemyScript.maxHealth);
+                    healthbarScript.HealthbarSystem();
+                    CinemachineControllerScript.Instance.CameraShake(shakeIntens, shakeTime);
+                    TextDemageSystem();
+                    enemyScript.FlashHitted();
+                    enemyScript.EnemyCondition();
+                    Time.timeScale = 0;
+                    if (rbEnemy != null)
+                    {
+                        rbEnemy.AddForce(transform.up * knockbackPower, ForceMode2D.Impulse);
+                        rbEnemy.AddForce(knockbackDir * knockbackPower, ForceMode2D.Impulse);
+                    }
+                    yield return new WaitForSecondsRealtime(shakeTime);
+                    Time.timeScale = 1;
                 }
-                enemyScript.health -= playerDemage;
-                healthbarScript.HealthbarSystem();
-                CinemachineControllerScript.Instance.CameraShake(shakeIntens, shakeTime);
-                TextDemageSystem();
-                enemyScript.FlashHitted();
-                enemyScript.EnemyCondition();
-                Time.timeScale = 0;
-                if (rbEnemy != null)
-                {
-                    rbEnemy.AddForce(transform.up * knockbackPower / 2, ForceMode2D.Impulse);
-                    rbEnemy.AddForce(knockbackDir * knockbackPower, ForceMode2D.Impulse);
-                }
-                yield return new WaitForSecondsRealtime(shakeTime);
-                Time.timeScale = 1;
             }
         }
 
@@ -303,11 +306,21 @@ public class PlayerMoveScript : MonoBehaviour
         textDemage.text = totalDemage.ToString();
     }
 
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.tag == "Trap")
         {
             health = 0f;
+            GameManager.Instance.PlayerCondition();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Trap")
+        {
+            health = 0f;
+            GameManager.Instance.PlayerCondition();
         }
     }
 
