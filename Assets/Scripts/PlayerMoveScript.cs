@@ -87,7 +87,7 @@ public class PlayerMoveScript : MonoBehaviour
             {
                 jumpTimer = .25f;
                 jumpsRemaining--;
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2 * Time.deltaTime);
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2);
             }
 
             else if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
