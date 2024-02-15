@@ -48,6 +48,8 @@ public class PlayerMoveScript : MonoBehaviour
     public float currentWeapon;
     public float hadWeapon = 0;
 
+    private bool wKey = false;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -63,19 +65,30 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerWeapon();
         PlayerAnimation();
-        PlayerMove();
+        directionX = Input.GetAxisRaw("Horizontal");
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            jumpTimer = .25f;
+        }
+        if (Input.GetKey(KeyCode.W))
+        {
+            wKey = true;
+        }
+        else
+        {
+            wKey = false;
+        }
     }
 
-    private void OnEnable()
+    private void FixedUpdate()
     {
-        
+        PlayerMove();
     }
 
     private void PlayerMove()
     {
         if (canDo)
         {
-            directionX = Input.GetAxisRaw("Horizontal");
             rb.velocity = new Vector2(directionX * movementSpeed, rb.velocity.y);
 
             if (Grounded())
@@ -83,18 +96,11 @@ public class PlayerMoveScript : MonoBehaviour
                 jumpsRemaining = 2;
             }
 
-            if (Input.GetKeyDown(KeyCode.W) && jumpsRemaining > 0)
+            if (wKey && jumpsRemaining > 0 && jumpTimer > 0)
             {
-                jumpTimer = .25f;
-                jumpsRemaining--;
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce * 2);
-            }
-
-            else if (Input.GetKey(KeyCode.W) && jumpsRemaining > 0 && jumpTimer >= 0f)
-            {
-                jumpTimer -= Time.deltaTime;
-                float jumpHeight = Mathf.Lerp(jumpForce, 0f, 1 - (jumpTimer/.25f));
-                rb.velocity += Vector2.up * jumpHeight;
+                jumpTimer -= .01f;
+                float jumpHeight = Mathf.Lerp(jumpForce, 0f, 1f - (jumpTimer/.25f));
+                rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
             }
         }
 
