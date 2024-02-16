@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviour
                 weaponImage.sprite = icon[0];
                 VFX.sprite = null;
                 VFX.color = new Color(0,0,0,0);
-                playerMoveScript.hadWeapon += 1;
+                playerMoveScript.hadWeapon = 1;
                 playerMoveScript.currentWeapon = 1;
                 break;
             case 1:
@@ -137,7 +137,7 @@ public class GameManager : MonoBehaviour
                 weaponImage.sprite = icon[1];
                 VFX.sprite = null;
                 VFX.color = new Color(0, 0, 0, 0);
-                playerMoveScript.hadWeapon += 1;
+                playerMoveScript.hadWeapon = 2;
                 playerMoveScript.currentWeapon = 2;
                 break;
             case 2:
@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour
                 weaponImage.sprite = icon[2];
                 VFX.sprite = icon[3];
                 VFX.color = new Color(1, 1, 1, 1);
-                playerMoveScript.hadWeapon += 1;
+                playerMoveScript.hadWeapon = 3;
                 playerMoveScript.currentWeapon = 3;
                 break;
         }
@@ -165,13 +165,20 @@ public class GameManager : MonoBehaviour
 
     public void CheatPanelSubmit()
     {
+        Time.timeScale = 0;
         InputField input;
         input = transform.Find("Canvas").transform.Find("Cheat Panel").transform.Find("Input").GetComponent<InputField>();
         if (input.text.ToLower() == "hesoyam")
         {
             playerMoveScript.hadWeapon = 3;
             playerMoveScript.currentWeapon = 3;
-            WeaponObtaining();
+            weaponName.text = "The Greatsword";
+            weaponImage.sprite = icon[2];
+            VFX.sprite = icon[3];
+            VFX.color = new Color(1, 1, 1, 1);
+            playerMoveScript.hadWeapon = 3;
+            playerMoveScript.currentWeapon = 3;
+            obtainPanel.SetActive(true);
         }
         transform.Find("Canvas").transform.Find("Cheat Panel").gameObject.SetActive(false);
     }

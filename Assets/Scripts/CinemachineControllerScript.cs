@@ -22,7 +22,6 @@ public class CinemachineControllerScript : MonoBehaviour
         virtualCamera.LookAt = player;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (shakeTime > 0f)

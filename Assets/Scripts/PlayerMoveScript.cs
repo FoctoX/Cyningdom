@@ -23,7 +23,8 @@ public class PlayerMoveScript : MonoBehaviour
     [SerializeField] private int jumpsRemaining;
     private float jumpTimer;
 
-    float directionX;
+    private float directionX;
+
     public float movementSpeed;
     public float jumpForce;
 
@@ -66,11 +67,11 @@ public class PlayerMoveScript : MonoBehaviour
         PlayerWeapon();
         PlayerAnimation();
         directionX = Input.GetAxisRaw("Horizontal");
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             jumpTimer = .25f;
         }
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
             wKey = true;
         }
@@ -121,12 +122,12 @@ public class PlayerMoveScript : MonoBehaviour
         if (directionX < 0)
         {
             moveState = MovementState.running;
-            transform.localScale = new Vector3(-7, transform.localScale.y, transform.localScale.z);
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y, transform.localScale.z);
         }
         else if (directionX > 0)
         {
             moveState = MovementState.running;
-            transform.localScale = new Vector3(7, transform.localScale.y, transform.localScale.z);
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
         else
         {
