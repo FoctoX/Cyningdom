@@ -22,18 +22,18 @@ AnimationClip:
     curve:
     - time: 0
       value: {fileID: 1515273135, guid: d3572ebd4cb1b354a8f36855a8627a28, type: 3}
-    - time: 0.03125
+    - time: 0.041666668
       value: {fileID: -1062118832, guid: d3572ebd4cb1b354a8f36855a8627a28, type: 3}
-    - time: 0.0625
+    - time: 0.083333336
       value: {fileID: 1984334739, guid: d3572ebd4cb1b354a8f36855a8627a28, type: 3}
-    - time: 0.09375
+    - time: 0.125
       value: {fileID: -315428045, guid: d3572ebd4cb1b354a8f36855a8627a28, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
     script: {fileID: 0}
     flags: 2
-  m_SampleRate: 32
+  m_SampleRate: 24
   m_WrapMode: 0
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -59,7 +59,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.125
+    m_StopTime: 0.16666667
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -86,14 +86,14 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.0625
+  - time: 0.083333336
     functionName: PlayerCombatRoutine
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.125
+  - time: 0.16666667
     functionName: CanMove
     data: 
     objectReferenceParameter: {fileID: 0}

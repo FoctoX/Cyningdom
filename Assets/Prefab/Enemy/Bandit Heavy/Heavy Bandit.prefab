@@ -51,13 +51,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 903cc0db16e53b749a9252184af5662e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bossName: 
   health: 1500
+  maxHealth: 0
+  attackCooldown: 0
   attackPoint: {fileID: 3207411266515890962}
   detectPoint: {fileID: 7101430968877907447}
   detectGround: {fileID: 2387043274869979552}
   demage: 150
   knockbackPower: 25
-  attackRadius: 2
+  attackRadius: {x: 4.05, y: 2.95}
   detectRadius: 10
   groundRadius: 0.5
   playerMask:
@@ -70,15 +73,21 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   anim: {fileID: 0}
+  attackState: 0
   normal: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   flash: {fileID: 2100000, guid: 80f28252a20761749b6ce150ae6a3227, type: 2}
   canHitted: 0
+  distanceAgainstPlayer: 1
   textDemage: {fileID: 5951608875590346684, guid: c0b92af98ddc7b34899f33714da58147, type: 3}
-  textDemageFix: 0
   targetObject: {fileID: 0}
   target: {fileID: 0}
   speed: 5
-  sprintSpeed: 0
+  chestReward: {fileID: 5925280331821721765, guid: e4d3a1751be1d7f448b0ec3abd0b005b, type: 3}
+  chestPositionFixY: 1.09
+  patrol: 0
+  life: 1
+  miniBoss: 1
+  boss: 0
 --- !u!212 &1936963873120524476
 SpriteRenderer:
   m_ObjectHideFlags: 0

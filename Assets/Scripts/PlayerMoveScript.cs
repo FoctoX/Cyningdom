@@ -66,10 +66,12 @@ public class PlayerMoveScript : MonoBehaviour
     {
         PlayerWeapon();
         PlayerAnimation();
+        Interact();
         directionX = Input.GetAxisRaw("Horizontal");
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             jumpTimer = .25f;
+            jumpsRemaining -= 1;
         }
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
@@ -122,12 +124,12 @@ public class PlayerMoveScript : MonoBehaviour
         if (directionX < 0)
         {
             moveState = MovementState.running;
-            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y, transform.localScale.z);
+            if (rb.velocity.x < 1) transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y, transform.localScale.z);
         }
         else if (directionX > 0)
         {
             moveState = MovementState.running;
-            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            if (rb.velocity.x > 1) transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
         else
         {
@@ -144,6 +146,20 @@ public class PlayerMoveScript : MonoBehaviour
         }
 
         anim.SetInteger("state", (int)moveState);
+    }
+
+    private void Interact()
+    {
+        Collider2D chestNearby = Physics2D.OverlapCircle(transform.position, 2, chestMask);
+        if (chestNearby != null) 
+        {
+            ChestScript chestScript = chestNearby.GetComponent<ChestScript>();
+            if (chestNearby && Input.GetKeyDown(KeyCode.E))
+            {
+                Debug.Log("Chest Opened");
+                chestScript.Open();
+            }
+        }
     }
 
     private void PlayerWeapon()
@@ -179,11 +195,11 @@ public class PlayerMoveScript : MonoBehaviour
                             anim.SetTrigger("atk");
                             attackPoint.transform.localPosition = new Vector2(.3f, 0f);
                             attackRadius = 1.75f;
-                            playerDemage = 50;
+                            playerDemage = 100;
                             shakeIntens = 1f;
                             shakeTime = .1f;
                             knockbackPower = 20f;
-                            energy -= 5f;
+                            energy -= 10f;
                         }
                         break;
                     case 3:
@@ -213,16 +229,23 @@ public class PlayerMoveScript : MonoBehaviour
             Vector2 knockbackDir = (enemy.transform.position - transform.position).normalized;
             EnemyScript enemyScript = enemy.GetComponent<EnemyScript>();
             Rigidbody2D rbEnemy = enemy.GetComponent<Rigidbody2D>();
-            HealthBarScript healthbarScript = enemy.gameObject.transform.parent.gameObject.transform.Find("Healthbar").gameObject.GetComponent<HealthBarScript>();
             critChance = Random.Range(0f,1f);
             if (enemyScript.life)
             {
                 if (critChance < .1f)
                 {
-                    if (enemyScript.anim != null) enemyScript.anim.SetTrigger("takeHit");
+                    if (enemyScript.anim != null)
+                    {
+                        enemyScript.anim.SetTrigger("takeHit");
+                        enemyScript.attackState = 0;
+                    }
                     totalDemage = playerDemage * 2;
                     enemyScript.health = Mathf.Clamp(enemyScript.health - totalDemage, 0f, enemyScript.maxHealth);
-                    healthbarScript.HealthbarSystem();
+                    if (!enemyScript.boss)
+                    {
+                        HealthBarScript healthbarScript = enemy.gameObject.transform.parent.gameObject.transform.Find("Healthbar").gameObject.GetComponent<HealthBarScript>();
+                        if (healthbarScript != null) healthbarScript.HealthbarSystem();
+                    }
                     CinemachineControllerScript.Instance.CameraShake(shakeIntens * 2, shakeTime * 2);
                     critParticle.Play();
                     TextCriticalDemageSystem();
@@ -240,12 +263,17 @@ public class PlayerMoveScript : MonoBehaviour
                 else if (enemyScript.life)
                 {
                     totalDemage = playerDemage;
-                    if ((totalDemage / enemyScript.health) >= .25f && enemyScript.anim != null)
+                    if ((totalDemage / enemyScript.maxHealth) >= .25f && enemyScript.anim != null)
                     {
                         enemyScript.anim.SetTrigger("takeHit");
+                        enemyScript.attackState = 0;
                     }
                     enemyScript.health = Mathf.Clamp(enemyScript.health - totalDemage, 0f, enemyScript.maxHealth);
-                    healthbarScript.HealthbarSystem();
+                    if (!enemyScript.boss)
+                    {
+                        HealthBarScript healthbarScript = enemy.gameObject.transform.parent.gameObject.transform.Find("Healthbar").gameObject.GetComponent<HealthBarScript>();
+                        if (healthbarScript != null) healthbarScript.HealthbarSystem();
+                    }
                     CinemachineControllerScript.Instance.CameraShake(shakeIntens, shakeTime);
                     TextDemageSystem();
                     enemyScript.FlashHitted();

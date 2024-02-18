@@ -5,17 +5,23 @@ using Random = UnityEngine.Random;
 
 public class EnemyScript : MonoBehaviour
 {
+    public string bossName;
+
     public float health;
     public float maxHealth;
+
+    public float attackCooldown;
+    private float attackCooldownTemp;
 
     [SerializeField] private Transform attackPoint;
     [SerializeField] private Transform detectPoint;
     [SerializeField] private Transform detectGround;
 
     [SerializeField] private float demage = 20;
+    private float demageBoss;
     [SerializeField] private float knockbackPower;
 
-    [SerializeField] private float attackRadius;
+    [SerializeField] private Vector2 attackRadius;
     [SerializeField] private float detectRadius;
     [SerializeField] private float groundRadius;
 
@@ -25,6 +31,7 @@ public class EnemyScript : MonoBehaviour
 
     public Animator anim;
     private enum MovementState { idle, running };
+    public int attackState = 0;
 
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -33,21 +40,27 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private Material normal;
     [SerializeField] private Material flash;
     private Coroutine flashCoroutine;
-    public bool canHitted;
+    [HideInInspector] public bool canHitted;
+    [SerializeField] private float distanceAgainstPlayer;
     [SerializeField] private GameObject textDemage;
-    [SerializeField] private float textDemageFix;
+    private float textDemageFix;
 
     [SerializeField] private GameObject targetObject;
     [SerializeField] private Transform target;
     [SerializeField] private float speed;
-    [SerializeField] private float sprintSpeed;
+    private float sprintSpeed;
 
+    [SerializeField] private GameObject chestReward;
+    [SerializeField] private float chestPositionFixY;
+
+    [SerializeField] private bool patrol;
     private bool canDo = true;
     public bool life = true;
 
     private PlayerMoveScript playerMoveScript;
 
-    [SerializeField] private bool Boss;
+    [SerializeField] private bool miniBoss;
+    [SerializeField] public bool boss;
 
     private void Awake()
     {
@@ -62,15 +75,12 @@ public class EnemyScript : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
         maxHealth = health;
-    }
-
-    private void Start()
-    {
-
+        attackCooldownTemp = attackCooldown;
     }
 
     private void FixedUpdate()
     {
+        BossAbility();
         if (anim != null)
         {
             EnemyMove();
@@ -91,22 +101,22 @@ public class EnemyScript : MonoBehaviour
             state = MovementState.idle;
         }
 
-        if (canDo && isPlayerOnArea() && playerMoveScript.life)
+        if (canDo && Physics2D.CircleCast(detectPoint.position, detectRadius, Vector2.zero, 0.1f, playerMask) && playerMoveScript.life)
         {
-            sprintSpeed = speed * 2;
-            if (target.position.x - 1 >= transform.position.x)
+            if (!boss && !miniBoss) sprintSpeed = speed * 2;
+            if (target.position.x - distanceAgainstPlayer >= transform.position.x)
             {
                 rb.velocity = new Vector2(Mathf.Abs(sprintSpeed), transform.position.y);
                 transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y);
             }
-            else if (target.position.x + 1 <= transform.position.x)
+            else if (target.position.x + distanceAgainstPlayer <= transform.position.x)
             {
                 rb.velocity = new Vector2(Mathf.Abs(sprintSpeed) * -1, transform.position.y);
                 transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
             }
         }
 
-        else if (canDo && !isPlayerOnArea() && Grounding())
+        else if (canDo && !Physics2D.CircleCast(detectPoint.position, detectRadius, Vector2.zero, 0.1f, playerMask) && Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0f, Vector2.down, 0.1f, platformMask) && patrol)
         {
             if (rb.velocity.x > 1f)
             {
@@ -116,7 +126,7 @@ public class EnemyScript : MonoBehaviour
             {
                 transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
             }
-            if (edgeGround())
+            if (Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, platformMask))
             {
                 rb.velocity = new(speed, transform.position.y);
             }
@@ -125,7 +135,7 @@ public class EnemyScript : MonoBehaviour
                 speed *= -1;
                 rb.velocity = new(speed, transform.position.y);
             }
-            if (!BorderCheck())
+            if (!Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, borderMask))
             {
                 rb.velocity = new(speed, transform.position.y);
             }
@@ -141,9 +151,11 @@ public class EnemyScript : MonoBehaviour
 
     private void AttackOnAnim()
     {
-        if (Physics2D.OverlapCircle(attackPoint.position, attackRadius, playerMask) && canDo && playerMoveScript.life)
+        attackCooldown -= Time.deltaTime;
+        if (Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask) && canDo && playerMoveScript.life && attackCooldown < 0)
         {
             anim.SetTrigger("attack");
+            attackCooldown = attackCooldownTemp;
         }
     }
 
@@ -158,19 +170,24 @@ public class EnemyScript : MonoBehaviour
     private IEnumerator EnemyDied()
     {
         life = false;
-        float timer = 1;
-        float restOfTimer = 0;
-        float value;
+        canDo = false;
 
         anim.SetTrigger("dead");
+        if (boss)
+        {
+            Instantiate(chestReward, new Vector3(transform.position.x, transform.position.y + chestPositionFixY, transform.position.z), Quaternion.identity);
+        }
 
         yield return new WaitForSeconds(1f);
 
-        while (restOfTimer < timer)
+        float elapsedTime = 0f;
+        float fadeDuration = 2f;
+
+        while (elapsedTime < fadeDuration)
         {
-            restOfTimer += Time.deltaTime;
-            value = (restOfTimer / timer);
-            spriteRenderer.color = new Color(1,1,1, value);
+            elapsedTime += Time.deltaTime;
+            spriteRenderer.color = new Color(1,1,1, Mathf.Lerp(0f, 1f, 1 - (elapsedTime / fadeDuration)));
+            yield return null;
         }
 
         yield return new WaitForSeconds(1f);
@@ -212,7 +229,7 @@ public class EnemyScript : MonoBehaviour
 
     private IEnumerator Attack()
     {
-        Collider2D playerOnArea = Physics2D.OverlapCircle(attackPoint.position, attackRadius, playerMask);
+        Collider2D playerOnArea = Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask);
         if (playerOnArea != null)
         {
             PlayerMoveScript playerMoveScript = playerOnArea.GetComponent<PlayerMoveScript>();
@@ -221,7 +238,39 @@ public class EnemyScript : MonoBehaviour
             if (playerMoveScript != null)
             {
                 playerMoveScript.TakeDemage();
-                playerMoveScript.health -= demage;
+                if (!boss)
+                {
+                    playerMoveScript.health -= demage;
+                }
+                else
+                {
+                    switch (attackState)
+                    {
+                        case 0:
+                            demageBoss = demage;
+                            attackPoint.localPosition = new Vector2(-0.2f, -0.25f);
+                            attackRadius = new Vector2(7.08f, 2.6f);
+                            anim.SetInteger("attackState", attackState);
+                            attackState = 1;
+                            break;
+                        case 1:
+                            demageBoss = demage * 1.5f;
+                            attackPoint.localPosition = new Vector2(.07f, -.24f);
+                            attackRadius = new Vector2(11, 3.8f);
+                            anim.SetInteger("attackState", attackState);
+                            attackState = 2;
+                            break;
+                        case 2:
+                            demageBoss = demage * 2;
+                            attackPoint.localPosition = new Vector2(-0.29f, -0.01f);
+                            attackRadius = new Vector2(6.44f, 7.4f);
+                            anim.SetInteger("attackState", attackState);
+                            attackState = 0;
+                            break;
+                    }
+                    playerMoveScript.health -= demageBoss;
+                }
+
                 if ((demage / playerMoveScript.health) >= .25f && anim != null)
                 {
                     playerMoveScript.anim.SetTrigger("takeHit");
@@ -233,14 +282,14 @@ public class EnemyScript : MonoBehaviour
         yield return null;
     }
 
-    private void BossConditions()
+    private void BossAbility()
     {
-        if (Boss)
+        if (boss || miniBoss)
         {
-            if (health / maxHealth < .25f && Boss == true)
+            sprintSpeed = speed * 2;
+            if (health / maxHealth < .5f)
             {
-                Boss = false;
-                speed *= 2;
+                sprintSpeed = speed * 3; 
             }
         }
     }
@@ -255,32 +304,13 @@ public class EnemyScript : MonoBehaviour
         canDo = false;
     }
 
-    private bool isPlayerOnArea()
-    {
-        return Physics2D.CircleCast(detectPoint.position, detectRadius, Vector2.zero, 0.1f, playerMask);
-    }
-
-    private bool Grounding()
-    {
-        return Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0f, Vector2.down, 0.1f, platformMask);
-    }
-
-    private bool edgeGround()
-    {
-        return Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, platformMask);
-    }
-
-    private bool BorderCheck(){
-        return Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, borderMask);
-    }
-
     private void OnDrawGizmos()
     {
         if (attackPoint == null || detectPoint == null || detectGround == null)
         {
             return;
         }
-        Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
+        Gizmos.DrawWireCube(attackPoint.position, attackRadius);
         Gizmos.DrawWireSphere(detectPoint.position, detectRadius);
         Gizmos.DrawWireSphere(detectGround.position, groundRadius);
     }

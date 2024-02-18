@@ -3,14 +3,18 @@ using UnityEngine;
 public class ChestScript : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
+    private Rigidbody2D rb;
     [SerializeField] Sprite[] sprites;
     [SerializeField] GameObject obtainingPanel;
     private PlayerMoveScript playerMoveScript;
     private int isOpened = 0;
+    [SerializeField] private bool forced = true;
+    [SerializeField] private float forcePower;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
         spriteRenderer.sprite = isOpened == 0 ? sprites[0] : sprites[1];
         playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
     }
@@ -18,25 +22,19 @@ public class ChestScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.tag == "Player" && isOpened == 0 && playerMoveScript.hadWeapon < 3)
+        if (forced)
         {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                spriteRenderer.sprite = sprites[1];
-                isOpened = 1;
-                GameManager.Instance.WeaponObtaining();
-            }
+            rb.AddForce(transform.up * forcePower, ForceMode2D.Impulse);
+        }
+    }
+
+    public void Open()
+    {
+        if (isOpened == 0)
+        {
+            spriteRenderer.sprite = sprites[1];
+            isOpened = 1;
+            GameManager.Instance.WeaponObtaining();
         }
     }
 }

@@ -60,6 +60,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
+            Time.timeScale = 0;
             transform.Find("Canvas").transform.Find("Cheat Panel").gameObject.SetActive(true);
         }
     }
@@ -67,6 +68,7 @@ public class GameManager : MonoBehaviour
     private void FixedUpdate()
     {
         PlayerCondition();
+        BossUI();
     }
 
     public void IconChange()
@@ -165,7 +167,7 @@ public class GameManager : MonoBehaviour
 
     public void CheatPanelSubmit()
     {
-        Time.timeScale = 0;
+        Time.timeScale = 1;
         InputField input;
         input = transform.Find("Canvas").transform.Find("Cheat Panel").transform.Find("Input").GetComponent<InputField>();
         if (input.text.ToLower() == "hesoyam")
@@ -181,5 +183,21 @@ public class GameManager : MonoBehaviour
             obtainPanel.SetActive(true);
         }
         transform.Find("Canvas").transform.Find("Cheat Panel").gameObject.SetActive(false);
+    }
+
+    public void BossUI()
+    {
+        if (GameObject.FindGameObjectWithTag("Boss") != null)
+        {
+            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = new Vector3(0, -450, 0);
+            transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(true);
+            EnemyScript enemyScriptBoss = GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>();
+            transform.Find("Canvas").transform.Find("Boss Health").transform.Find("Health").transform.Find("Current Health").GetComponent<Image>().fillAmount = enemyScriptBoss.health / enemyScriptBoss.maxHealth;
+        }
+        else
+        {
+            transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(false);
+            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = Vector3.zero;
+        }
     }
 }
