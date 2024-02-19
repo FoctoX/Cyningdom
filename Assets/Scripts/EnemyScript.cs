@@ -9,6 +9,7 @@ public class EnemyScript : MonoBehaviour
 
     public float health;
     public float maxHealth;
+    [SerializeField] private float jumpForce;
 
     public float attackCooldown;
     private float attackCooldownTemp;
@@ -16,6 +17,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private Transform attackPoint;
     [SerializeField] private Transform detectPoint;
     [SerializeField] private Transform detectGround;
+    [SerializeField] private Transform detectFrontGround;
 
     [SerializeField] private float demage = 20;
     private float demageBoss;
@@ -69,6 +71,7 @@ public class EnemyScript : MonoBehaviour
         attackPoint = transform.Find("Attack Radius");
         detectPoint = transform.Find("Detect Radius");
         detectGround = transform.Find("Ground Check");
+        detectFrontGround = transform.Find("Front Platform Check");
         spriteRenderer = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
@@ -104,15 +107,36 @@ public class EnemyScript : MonoBehaviour
         if (canDo && Physics2D.CircleCast(detectPoint.position, detectRadius, Vector2.zero, 0.1f, playerMask) && playerMoveScript.life)
         {
             if (!boss && !miniBoss) sprintSpeed = speed * 2;
-            if (target.position.x - distanceAgainstPlayer >= transform.position.x)
+            if (target.position.x >= transform.position.x)
             {
-                rb.velocity = new Vector2(Mathf.Abs(sprintSpeed), transform.position.y);
                 transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y);
+            }
+            else if (target.position.x <= transform.position.x)
+            {
+                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
+            }
+            if (Physics2D.Raycast(detectGround.position, Vector2.left, Mathf.Infinity, platformMask).distance < .05f && Physics2D.Raycast(detectFrontGround.position, Vector2.down, Mathf.Infinity, platformMask).collider == null)
+            {
+                Debug.Log("Stop");
+                rb.velocity = Vector2.zero;
+            }
+            else if (target.position.x - distanceAgainstPlayer >= transform.position.x)
+            {
+                rb.velocity = new Vector2(Mathf.Abs(sprintSpeed), rb.velocity.y);
+                if (Physics2D.BoxCast(detectFrontGround.position, new Vector2(.1f, .1f), 0f, Vector2.left, 1f, platformMask) && Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0f, Vector2.down, 0.1f, platformMask))
+                {
+                    Debug.Log("touching");
+                    rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+                } 
             }
             else if (target.position.x + distanceAgainstPlayer <= transform.position.x)
             {
-                rb.velocity = new Vector2(Mathf.Abs(sprintSpeed) * -1, transform.position.y);
-                transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
+                rb.velocity = new Vector2(Mathf.Abs(sprintSpeed) * -1, rb.velocity.y);
+                if (Physics2D.BoxCast(detectFrontGround.position, new Vector2(.1f, .1f), 0f, Vector2.left, 1f, platformMask) && Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0f, Vector2.down, 0.1f, platformMask))
+                {
+                    Debug.Log("touching");
+                    rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+                }
             }
         }
 
@@ -128,21 +152,21 @@ public class EnemyScript : MonoBehaviour
             }
             if (Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, platformMask))
             {
-                rb.velocity = new(speed, transform.position.y);
+                rb.velocity = new(speed, rb.velocity.y);
             }
             else
             {
                 speed *= -1;
-                rb.velocity = new(speed, transform.position.y);
+                rb.velocity = new(speed, rb.velocity.y);
             }
             if (!Physics2D.CircleCast(detectGround.position, groundRadius, Vector2.one, 0.1f, borderMask))
             {
-                rb.velocity = new(speed, transform.position.y);
+                rb.velocity = new(speed, rb.velocity.y);
             }
             else
             {
                 speed *= -1;
-                rb.velocity = new(speed, transform.position.y);
+                rb.velocity = new(speed, rb.velocity.y);
             }
         }
 
@@ -242,7 +266,7 @@ public class EnemyScript : MonoBehaviour
                 {
                     playerMoveScript.health -= demage;
                 }
-                else
+                else if (transform.parent.name == "King" && boss)
                 {
                     switch (attackState)
                     {

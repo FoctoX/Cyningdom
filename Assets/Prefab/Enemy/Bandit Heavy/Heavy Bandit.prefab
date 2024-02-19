@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &272800074697193960
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 874526068442782436}
+  m_Layer: 7
+  m_Name: Front Platform Check
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &874526068442782436
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 272800074697193960}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.31, y: 0.09, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5580515359884863318}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1299723432882835714
 GameObject:
   m_ObjectHideFlags: 0
@@ -37,6 +68,7 @@ Transform:
   - {fileID: 3207411266515890962}
   - {fileID: 7101430968877907447}
   - {fileID: 2387043274869979552}
+  - {fileID: 874526068442782436}
   m_Father: {fileID: 3816620552356506707}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8612893390559451284
@@ -54,10 +86,12 @@ MonoBehaviour:
   bossName: 
   health: 1500
   maxHealth: 0
+  jumpForce: 100
   attackCooldown: 0
   attackPoint: {fileID: 3207411266515890962}
   detectPoint: {fileID: 7101430968877907447}
   detectGround: {fileID: 2387043274869979552}
+  detectFrontGround: {fileID: 874526068442782436}
   demage: 150
   knockbackPower: 25
   attackRadius: {x: 4.05, y: 2.95}
@@ -521,7 +555,7 @@ Transform:
   m_GameObject: {fileID: 5337261531223280701}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.7, y: 0.06, z: 0}
+  m_LocalPosition: {x: -0.31, y: 0.06, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
