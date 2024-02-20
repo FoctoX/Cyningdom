@@ -112,6 +112,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DiedAnimation()
     {
+        transform.Find("Canvas").transform.Find("Player Died").gameObject.SetActive(true);
         fade.SetTrigger("died");
 
         yield return new WaitForSecondsRealtime(3.5f);

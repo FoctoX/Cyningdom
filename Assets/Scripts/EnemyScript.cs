@@ -95,7 +95,7 @@ public class EnemyScript : MonoBehaviour
     {
         MovementState state;
 
-        if (rb.velocity.x > .1f || rb.velocity.x < -.1f)
+        if (rb.velocity.x > .05f || rb.velocity.x < -.05f)
         {
             state = MovementState.running;
         }
@@ -193,6 +193,7 @@ public class EnemyScript : MonoBehaviour
 
     private IEnumerator EnemyDied()
     {
+        if (transform.Find("Boss Icon").gameObject != null) Destroy(transform.Find("Boss Icon").gameObject);
         life = false;
         canDo = false;
 
@@ -253,7 +254,34 @@ public class EnemyScript : MonoBehaviour
 
     private IEnumerator Attack()
     {
-        Collider2D playerOnArea = Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask);
+        if (transform.parent.name == "King" && boss)
+        {
+            switch (attackState)
+            {
+                case 0:
+                    demageBoss = demage;
+                    attackPoint.localPosition = new Vector2(-0.2f, -0.25f);
+                    attackRadius = new Vector2(7.08f, 2.6f);
+                    anim.SetInteger("attackState", attackState);
+                    attackState = 1;
+                    break;
+                case 1:
+                    demageBoss = demage * 2;
+                    attackPoint.localPosition = new Vector2(.07f, -.24f);
+                    attackRadius = new Vector2(11, 3.8f);
+                    anim.SetInteger("attackState", attackState);
+                    attackState = 2;
+                    break;
+                case 2:
+                    demageBoss = demage * 4;
+                    attackPoint.localPosition = new Vector2(-0.29f, -0.01f);
+                    attackRadius = new Vector2(6.44f, 7.4f);
+                    anim.SetInteger("attackState", attackState);
+                    attackState = 0;
+                    break;
+            }
+        }
+            Collider2D playerOnArea = Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask);
         if (playerOnArea != null)
         {
             PlayerMoveScript playerMoveScript = playerOnArea.GetComponent<PlayerMoveScript>();
@@ -266,32 +294,8 @@ public class EnemyScript : MonoBehaviour
                 {
                     playerMoveScript.health -= demage;
                 }
-                else if (transform.parent.name == "King" && boss)
+                else
                 {
-                    switch (attackState)
-                    {
-                        case 0:
-                            demageBoss = demage;
-                            attackPoint.localPosition = new Vector2(-0.2f, -0.25f);
-                            attackRadius = new Vector2(7.08f, 2.6f);
-                            anim.SetInteger("attackState", attackState);
-                            attackState = 1;
-                            break;
-                        case 1:
-                            demageBoss = demage * 1.5f;
-                            attackPoint.localPosition = new Vector2(.07f, -.24f);
-                            attackRadius = new Vector2(11, 3.8f);
-                            anim.SetInteger("attackState", attackState);
-                            attackState = 2;
-                            break;
-                        case 2:
-                            demageBoss = demage * 2;
-                            attackPoint.localPosition = new Vector2(-0.29f, -0.01f);
-                            attackRadius = new Vector2(6.44f, 7.4f);
-                            anim.SetInteger("attackState", attackState);
-                            attackState = 0;
-                            break;
-                    }
                     playerMoveScript.health -= demageBoss;
                 }
 
