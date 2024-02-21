@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 public class PlayerMoveScript : MonoBehaviour
 {
-    [NonSerialized] public int experienceLevel = 1;
+    public int experienceLevel;
     public float health, maxHealth, energy, maxEnergy, exp, maxExp;
     public float energyRegenRate; 
 
@@ -62,6 +62,32 @@ public class PlayerMoveScript : MonoBehaviour
         critParticle = critParticleObject.GetComponent<ParticleSystem>();
     }
 
+    private void Start()
+    {
+        LevelUp();
+        health = PlayerPrefs.GetFloat("health");
+        energy = PlayerPrefs.GetFloat("energy");
+        exp = PlayerPrefs.GetFloat("exp");
+        if (health <= 0)
+        {
+            PlayerPrefs.SetFloat("health", maxHealth);
+            PlayerPrefs.SetFloat("energy", maxEnergy);
+            PlayerPrefs.SetFloat("exp", maxExp);
+            health = PlayerPrefs.GetFloat("health");
+            energy = PlayerPrefs.GetFloat("energy");
+        }
+        else
+        {
+            PlayerPrefs.SetFloat("health", health);
+            PlayerPrefs.SetFloat("energy", maxEnergy);
+            PlayerPrefs.SetFloat("exp", exp);
+            health = PlayerPrefs.GetFloat("health");
+            energy = PlayerPrefs.GetFloat("energy");
+            exp = PlayerPrefs.GetFloat("exp");
+        }
+        LevelUp();
+    }
+
     private void Update()
     {
         PlayerWeapon();
@@ -92,6 +118,49 @@ public class PlayerMoveScript : MonoBehaviour
     private void PlayerStatusUpdate()
     {
         energy = Mathf.Clamp(energy + energyRegenRate, 0f, maxEnergy);
+    }
+
+
+    public void LevelUp()
+    {
+        if (experienceLevel == 0)
+        {
+            experienceLevel = 1;
+        }
+        switch (experienceLevel)
+        {
+            case 1:
+                maxHealth = 250f;
+                maxEnergy = 25f;
+                energyRegenRate = .01f;
+                maxExp = 100f;
+                break;
+            case 2:
+                maxHealth = 500f;
+                maxEnergy = 50f;
+                energyRegenRate = .025f;
+                maxExp = 250f;
+                break;
+            case 3:
+                maxHealth = 1000f;
+                maxEnergy = 100f;
+                energyRegenRate = .1f;
+                maxExp = 500f;
+                break;
+            case 4:
+                maxHealth = 1500f;
+                maxEnergy = 150f;
+                energyRegenRate = .5f;
+                maxExp = 750f;
+                break;
+            case 5:
+                maxHealth = 3000f;
+                maxEnergy = 500f;
+                energyRegenRate = 1f;
+                maxExp = 1000f;
+                break;
+        }
+        PlayerPrefs.SetInt("level", experienceLevel);
     }
 
     private void PlayerMove()

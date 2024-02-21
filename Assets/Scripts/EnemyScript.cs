@@ -9,6 +9,7 @@ public class EnemyScript : MonoBehaviour
 
     public float health;
     public float maxHealth;
+    [SerializeField] private float expQuantity;
     [SerializeField] private float jumpForce;
 
     public float attackCooldown;
@@ -182,13 +183,15 @@ public class EnemyScript : MonoBehaviour
     {
         if (health <= 0)
         {
+            playerMoveScript.exp += expQuantity;
+            PlayerPrefs.SetFloat("exp", playerMoveScript.exp);
             StartCoroutine("EnemyDied");
         }
     }
 
     private IEnumerator EnemyDied()
     {
-        if (transform.Find("Boss Icon").gameObject != null) Destroy(transform.Find("Boss Indicator").gameObject);
+        if (transform.Find("Boss Indicator").gameObject != null) Destroy(transform.Find("Boss Indicator").gameObject);
 
         life = false;
         canDo = false;

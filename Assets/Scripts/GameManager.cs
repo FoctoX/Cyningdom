@@ -42,13 +42,17 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
         playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
-        LevelUp();
         fade = transform.Find("Canvas").transform.Find("Player Died").GetComponent<Animator>();
         diedPanel = fade.transform.Find("Panel").gameObject;
         obtainPanel = transform.Find("Canvas").transform.Find("Item Obtained").gameObject;
         weaponName = obtainPanel.transform.Find("Text").transform.Find("Weapon Name").GetComponent<Text>();
         VFX = obtainPanel.transform.Find("Image").transform.Find("VFX").GetComponent<Image>();
         weaponImage = obtainPanel.transform.Find("Image").transform.Find("Weapon").GetComponent<Image>();
+        playerMoveScript.experienceLevel = PlayerPrefs.GetInt("exp");
+    }
+
+    private void Start()
+    {
         IconChange();
     }
 
@@ -100,55 +104,22 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine("DiedAnimation");
         }
+        if (playerMoveScript.exp >= playerMoveScript.maxExp)
+        {
+            if (playerMoveScript.experienceLevel < 5)
+            {
+                playerMoveScript.experienceLevel += 1;
+            }
+            playerMoveScript.LevelUp();
+            playerMoveScript.exp = 0f;
+            playerMoveScript.health = playerMoveScript.maxHealth;
+            playerMoveScript.energy = playerMoveScript.maxEnergy;
+        }
     }
 
     public void PlayerConditionRescan()
     {
 
-    }
-
-    public void LevelUp()
-    {
-        switch (playerMoveScript.experienceLevel)
-        {
-            case 1:
-                playerMoveScript.maxHealth = 250f;
-                playerMoveScript.maxEnergy = 25f;
-                playerMoveScript.energyRegenRate = .01f;
-                playerMoveScript.maxExp = 100f;
-                break;
-            case 2:
-                playerMoveScript.maxHealth = 500f;
-                playerMoveScript.maxEnergy = 50f;
-                playerMoveScript.energyRegenRate = .025f;
-                playerMoveScript.maxExp = 250f;
-                break;
-            case 3:
-                playerMoveScript.maxHealth = 1000f;
-                playerMoveScript.maxEnergy = 100f;
-                playerMoveScript.energyRegenRate = .1f;
-                playerMoveScript.maxExp = 500f;
-                break;
-            case 4:
-                playerMoveScript.maxHealth = 1500f;
-                playerMoveScript.maxEnergy = 150f;
-                playerMoveScript.energyRegenRate = .5f;
-                playerMoveScript.maxExp = 750f;
-                break;
-            case 5:
-                playerMoveScript.maxHealth = 3000f;
-                playerMoveScript.maxEnergy = 500f;
-                playerMoveScript.energyRegenRate = 1f;
-                playerMoveScript.maxExp = 1000f;
-                break;
-        }
-        playerMoveScript.health = playerMoveScript.maxHealth;
-        playerMoveScript.energy = playerMoveScript.maxEnergy;
-        playerMoveScript.exp = 0f;
-        Debug.Log("healthbar amaount" + healthbar.fillAmount);
-        Debug.Log("healthbar" + playerMoveScript.health);
-        Debug.Log("healthbarMax" + playerMoveScript.maxHealth);
-        Debug.Log(playerMoveScript.experienceLevel);
     }
 
     private IEnumerator DiedAnimation()
