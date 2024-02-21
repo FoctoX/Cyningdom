@@ -14,10 +14,7 @@ public class EnemyScript : MonoBehaviour
     public float attackCooldown;
     private float attackCooldownTemp;
 
-    [SerializeField] private Transform attackPoint;
-    [SerializeField] private Transform detectPoint;
-    [SerializeField] private Transform detectGround;
-    [SerializeField] private Transform detectFrontGround;
+    [SerializeField] private Transform attackPoint, detectPoint, detectGround, detectFrontGround;
 
     [SerializeField] private float demage = 20;
     private float demageBoss;
@@ -27,9 +24,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private float detectRadius;
     [SerializeField] private float groundRadius;
 
-    [SerializeField] private LayerMask playerMask;
-    [SerializeField] private LayerMask platformMask;
-    [SerializeField] private LayerMask borderMask;
+    [SerializeField] private LayerMask playerMask, platformMask, borderMask;
 
     public Animator anim;
     private enum MovementState { idle, running };
@@ -193,7 +188,8 @@ public class EnemyScript : MonoBehaviour
 
     private IEnumerator EnemyDied()
     {
-        if (transform.Find("Boss Icon").gameObject != null) Destroy(transform.Find("Boss Icon").gameObject);
+        if (transform.Find("Boss Icon").gameObject != null) Destroy(transform.Find("Boss Indicator").gameObject);
+
         life = false;
         canDo = false;
 
@@ -299,7 +295,7 @@ public class EnemyScript : MonoBehaviour
                     playerMoveScript.health -= demageBoss;
                 }
 
-                if ((demage / playerMoveScript.health) >= .25f && anim != null)
+                if ((demage / playerMoveScript.maxHealth) >= .25f && anim != null)
                 {
                     playerMoveScript.anim.SetTrigger("takeHit");
                 }

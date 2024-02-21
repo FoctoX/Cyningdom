@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Image parentHealthbar, parentEnergybar, parentExpbar;
     [SerializeField] private Image healthbar, energybar, expbar;
-    private float maxHealth, maxEnergy, maxExp;
 
     private GameObject diedPanel;
 
@@ -43,16 +42,13 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
         playerMoveScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMoveScript>();
-        maxHealth = playerMoveScript.health;
-        maxEnergy = playerMoveScript.energy;
-        maxExp = playerMoveScript.exp;
+        LevelUp();
         fade = transform.Find("Canvas").transform.Find("Player Died").GetComponent<Animator>();
         diedPanel = fade.transform.Find("Panel").gameObject;
         obtainPanel = transform.Find("Canvas").transform.Find("Item Obtained").gameObject;
         weaponName = obtainPanel.transform.Find("Text").transform.Find("Weapon Name").GetComponent<Text>();
         VFX = obtainPanel.transform.Find("Image").transform.Find("VFX").GetComponent<Image>();
         weaponImage = obtainPanel.transform.Find("Image").transform.Find("Weapon").GetComponent<Image>();
-        PlayerCondition();
         IconChange();
     }
 
@@ -67,7 +63,7 @@ public class GameManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        PlayerCondition();
+        PlayerConditionUI();
         BossUI();
     }
 
@@ -94,20 +90,65 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void PlayerCondition()
+    public void PlayerConditionUI()
     {
-        healthbar.fillAmount = playerMoveScript.health / maxHealth;
-        energybar.fillAmount = playerMoveScript.energy / maxEnergy;
-        expbar.fillAmount = playerMoveScript.exp / maxExp;
-
-        playerMoveScript.energy += 0.1f;
-        playerMoveScript.energy = Mathf.Clamp(playerMoveScript.energy, 0f, maxEnergy);
-        playerMoveScript.health = Mathf.Clamp(playerMoveScript.health, 0f, maxHealth);
+        healthbar.fillAmount = playerMoveScript.health / playerMoveScript.maxHealth;
+        energybar.fillAmount = playerMoveScript.energy / playerMoveScript.maxEnergy;
+        expbar.fillAmount = playerMoveScript.exp / playerMoveScript.maxExp;
 
         if (playerMoveScript.health <= 0f)
         {
             StartCoroutine("DiedAnimation");
         }
+    }
+
+    public void PlayerConditionRescan()
+    {
+
+    }
+
+    public void LevelUp()
+    {
+        switch (playerMoveScript.experienceLevel)
+        {
+            case 1:
+                playerMoveScript.maxHealth = 250f;
+                playerMoveScript.maxEnergy = 25f;
+                playerMoveScript.energyRegenRate = .01f;
+                playerMoveScript.maxExp = 100f;
+                break;
+            case 2:
+                playerMoveScript.maxHealth = 500f;
+                playerMoveScript.maxEnergy = 50f;
+                playerMoveScript.energyRegenRate = .025f;
+                playerMoveScript.maxExp = 250f;
+                break;
+            case 3:
+                playerMoveScript.maxHealth = 1000f;
+                playerMoveScript.maxEnergy = 100f;
+                playerMoveScript.energyRegenRate = .1f;
+                playerMoveScript.maxExp = 500f;
+                break;
+            case 4:
+                playerMoveScript.maxHealth = 1500f;
+                playerMoveScript.maxEnergy = 150f;
+                playerMoveScript.energyRegenRate = .5f;
+                playerMoveScript.maxExp = 750f;
+                break;
+            case 5:
+                playerMoveScript.maxHealth = 3000f;
+                playerMoveScript.maxEnergy = 500f;
+                playerMoveScript.energyRegenRate = 1f;
+                playerMoveScript.maxExp = 1000f;
+                break;
+        }
+        playerMoveScript.health = playerMoveScript.maxHealth;
+        playerMoveScript.energy = playerMoveScript.maxEnergy;
+        playerMoveScript.exp = 0f;
+        Debug.Log("healthbar amaount" + healthbar.fillAmount);
+        Debug.Log("healthbar" + playerMoveScript.health);
+        Debug.Log("healthbarMax" + playerMoveScript.maxHealth);
+        Debug.Log(playerMoveScript.experienceLevel);
     }
 
     private IEnumerator DiedAnimation()
@@ -190,10 +231,13 @@ public class GameManager : MonoBehaviour
     {
         if (GameObject.FindGameObjectWithTag("Boss") != null)
         {
+            GameObject bossHealth = transform.Find("Canvas").transform.Find("Boss Health").gameObject;
             transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = new Vector3(0, -450, 0);
-            transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(true);
+            bossHealth.SetActive(true);
             EnemyScript enemyScriptBoss = GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>();
-            transform.Find("Canvas").transform.Find("Boss Health").transform.Find("Health").transform.Find("Current Health").GetComponent<Image>().fillAmount = enemyScriptBoss.health / enemyScriptBoss.maxHealth;
+            bossHealth.transform.Find("Name").GetComponent<Text>().text = enemyScriptBoss.bossName;
+            bossHealth.transform.Find("Name Behind").GetComponent<Text>().text = enemyScriptBoss.bossName;
+            bossHealth.transform.Find("Health").transform.Find("Current Health").GetComponent<Image>().fillAmount = enemyScriptBoss.health / enemyScriptBoss.maxHealth;
         }
         else
         {

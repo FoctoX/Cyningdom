@@ -5,7 +5,9 @@ using Random = UnityEngine.Random;
 
 public class PlayerMoveScript : MonoBehaviour
 {
-    public float health = 300f, energy = 100f, exp = 100f;
+    [NonSerialized] public int experienceLevel = 1;
+    public float health, maxHealth, energy, maxEnergy, exp, maxExp;
+    public float energyRegenRate; 
 
     private SpriteRenderer sprite;
     [SerializeField] private Material normal;
@@ -16,9 +18,7 @@ public class PlayerMoveScript : MonoBehaviour
     public Animator anim;
     private Collider2D playerColl;
 
-    [SerializeField] private LayerMask platformMask;
-    [SerializeField] private LayerMask enemies;
-    [SerializeField] private LayerMask chestMask;
+    [SerializeField] private LayerMask platformMask, enemies, chestMask;
 
     [SerializeField] private int jumpsRemaining;
     private float jumpTimer;
@@ -86,6 +86,12 @@ public class PlayerMoveScript : MonoBehaviour
     private void FixedUpdate()
     {
         PlayerMove();
+        PlayerStatusUpdate();
+    }
+
+    private void PlayerStatusUpdate()
+    {
+        energy = Mathf.Clamp(energy + energyRegenRate, 0f, maxEnergy);
     }
 
     private void PlayerMove()
@@ -346,7 +352,7 @@ public class PlayerMoveScript : MonoBehaviour
         if (collision.collider.tag == "Trap")
         {
             health = 0f;
-            GameManager.Instance.PlayerCondition();
+            GameManager.Instance.PlayerConditionUI();
         }
     }
 
@@ -355,7 +361,7 @@ public class PlayerMoveScript : MonoBehaviour
         if (collision.tag == "Trap")
         {
             health = 0f;
-            GameManager.Instance.PlayerCondition();
+            GameManager.Instance.PlayerConditionUI();
         }
     }
 
