@@ -7,6 +7,8 @@ TagManager:
   - Trap
   - Chest
   - Boss
+  - Enemy
+  - Heal
   layers:
   - Default
   - TransparentFX
@@ -17,7 +19,7 @@ TagManager:
   - Platform
   - Enemy
   - Border
-  - Chest
+  - Item
   - 
   - 
   - 

@@ -48,8 +48,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private float speed;
     private float sprintSpeed;
 
-    [SerializeField] private GameObject chestReward;
-    [SerializeField] private float chestPositionFixY;
+    [SerializeField] private GameObject chestReward, heal;
 
     [SerializeField] private bool patrol;
     private bool canDo = true;
@@ -191,7 +190,7 @@ public class EnemyScript : MonoBehaviour
 
     private IEnumerator EnemyDied()
     {
-        if (transform.Find("Boss Indicator").gameObject != null) Destroy(transform.Find("Boss Indicator").gameObject);
+        if (boss) Destroy(transform.Find("Boss Indicator").gameObject);
 
         life = false;
         canDo = false;
@@ -199,7 +198,12 @@ public class EnemyScript : MonoBehaviour
         anim.SetTrigger("dead");
         if (boss)
         {
-            Instantiate(chestReward, new Vector3(transform.position.x, transform.position.y + chestPositionFixY, transform.position.z), Quaternion.identity);
+            Instantiate(chestReward, boxCollider.bounds.center, Quaternion.identity);
+            Instantiate(heal, boxCollider.bounds.center, Quaternion.identity);
+        }
+        else if (miniBoss)
+        {
+            Instantiate(heal, boxCollider.bounds.center, Quaternion.identity);
         }
 
         yield return new WaitForSeconds(1f);
@@ -280,7 +284,7 @@ public class EnemyScript : MonoBehaviour
                     break;
             }
         }
-            Collider2D playerOnArea = Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask);
+        Collider2D playerOnArea = Physics2D.OverlapBox(attackPoint.position, attackRadius, 0f, playerMask);
         if (playerOnArea != null)
         {
             PlayerMoveScript playerMoveScript = playerOnArea.GetComponent<PlayerMoveScript>();

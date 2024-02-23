@@ -18,7 +18,7 @@ public class PlayerMoveScript : MonoBehaviour
     public Animator anim;
     private Collider2D playerColl;
 
-    [SerializeField] private LayerMask platformMask, enemies, chestMask;
+    [SerializeField] private LayerMask platformMask, enemies, interactItems;
 
     [SerializeField] private int jumpsRemaining;
     private float jumpTimer;
@@ -72,15 +72,14 @@ public class PlayerMoveScript : MonoBehaviour
         {
             PlayerPrefs.SetFloat("health", maxHealth);
             PlayerPrefs.SetFloat("energy", maxEnergy);
-            PlayerPrefs.SetFloat("exp", maxExp);
             health = PlayerPrefs.GetFloat("health");
             energy = PlayerPrefs.GetFloat("energy");
+            exp = PlayerPrefs.GetFloat("exp");
         }
         else
         {
             PlayerPrefs.SetFloat("health", health);
             PlayerPrefs.SetFloat("energy", maxEnergy);
-            PlayerPrefs.SetFloat("exp", exp);
             health = PlayerPrefs.GetFloat("health");
             energy = PlayerPrefs.GetFloat("energy");
             exp = PlayerPrefs.GetFloat("exp");
@@ -225,15 +224,23 @@ public class PlayerMoveScript : MonoBehaviour
 
     private void Interact()
     {
-        Collider2D chestNearby = Physics2D.OverlapCircle(transform.position, 2, chestMask);
-        if (chestNearby != null) 
+        Collider2D itemNearby = Physics2D.OverlapBox(playerColl.bounds.center, playerColl.bounds.size, 0f, interactItems);
+        if (itemNearby != null) 
         {
-            ChestScript chestScript = chestNearby.GetComponent<ChestScript>();
-            if (chestNearby && Input.GetKeyDown(KeyCode.E))
+            if (itemNearby.gameObject.tag == "Chest")
             {
-                Debug.Log("Chest Opened");
-                chestScript.Open();
+                ChestScript chestScript = itemNearby.GetComponent<ChestScript>();
+                if (itemNearby && Input.GetKeyDown(KeyCode.E))
+                {
+                    chestScript.Open();
+                }
             }
+            else if (itemNearby.gameObject.tag == "Heal")
+            {
+                Destroy(itemNearby.gameObject);
+                health = maxHealth;
+            }
+
         }
     }
 

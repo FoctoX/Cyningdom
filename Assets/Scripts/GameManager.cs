@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
         VFX = obtainPanel.transform.Find("Image").transform.Find("VFX").GetComponent<Image>();
         weaponImage = obtainPanel.transform.Find("Image").transform.Find("Weapon").GetComponent<Image>();
         playerMoveScript.experienceLevel = PlayerPrefs.GetInt("exp");
+        
     }
 
     private void Start()
@@ -69,6 +70,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerConditionUI();
         BossUI();
+        BossSpawning();
     }
 
     public void IconChange()
@@ -200,7 +202,7 @@ public class GameManager : MonoBehaviour
 
     public void BossUI()
     {
-        if (GameObject.FindGameObjectWithTag("Boss") != null)
+        if (GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled)
         {
             GameObject bossHealth = transform.Find("Canvas").transform.Find("Boss Health").gameObject;
             transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = new Vector3(0, -450, 0);
@@ -214,6 +216,17 @@ public class GameManager : MonoBehaviour
         {
             transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(false);
             transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = Vector3.zero;
+        }
+    }
+
+    private void BossSpawning()
+    {
+        GameObject[] allEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+        if (allEnemies.Length <= 0)
+        {
+            GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled = true;
+            GameObject.FindGameObjectWithTag("Boss").GetComponent<SpriteRenderer>().enabled = true;
+            GameObject.FindGameObjectWithTag("Boss").transform.Find("Boss Indicator").gameObject.SetActive(true);
         }
     }
 }
