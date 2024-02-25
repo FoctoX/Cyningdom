@@ -428,6 +428,7 @@ public class PlayerMoveScript : MonoBehaviour
         if (collision.collider.tag == "Trap")
         {
             health = 0f;
+            TakeDemage();
             GameManager.Instance.PlayerConditionUI();
         }
     }
@@ -437,9 +438,11 @@ public class PlayerMoveScript : MonoBehaviour
         if (collision.tag == "Trap")
         {
             health = 0f;
+            TakeDemage();
             GameManager.Instance.PlayerConditionUI();
         }
     }
+
 
     private bool Grounded()
     {

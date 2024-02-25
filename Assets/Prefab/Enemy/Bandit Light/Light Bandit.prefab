@@ -429,7 +429,7 @@ GameObject:
   - component: {fileID: 1811416281484050285}
   m_Layer: 7
   m_Name: Sprite
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -466,16 +466,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bossName: 
-  health: 100
+  health: 125
   maxHealth: 0
+  expQuantity: 10
   jumpForce: 15
-  attackCooldown: 0
+  attackCooldown: 1
   attackPoint: {fileID: 8143479102272763394}
   detectPoint: {fileID: 3733400234035129126}
   detectGround: {fileID: 7592625466355365300}
   detectFrontGround: {fileID: 4171401333316281226}
-  demage: 25
-  knockbackPower: 10
+  demage: 10
+  knockbackPower: 5
   attackRadius: {x: 2.34, y: 2.12}
   detectRadius: 5
   groundRadius: 0.5
@@ -499,8 +500,8 @@ MonoBehaviour:
   target: {fileID: 0}
   speed: 10
   chestReward: {fileID: 0}
-  chestPositionFixY: 0
-  patrol: 0
+  heal: {fileID: 0}
+  patrol: 1
   life: 1
   miniBoss: 0
   boss: 0

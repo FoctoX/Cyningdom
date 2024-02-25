@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
     private Animator fade;
     private Animator wasted;
 
+    private bool pauseSwitch = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -49,7 +51,6 @@ public class GameManager : MonoBehaviour
         VFX = obtainPanel.transform.Find("Image").transform.Find("VFX").GetComponent<Image>();
         weaponImage = obtainPanel.transform.Find("Image").transform.Find("Weapon").GetComponent<Image>();
         playerMoveScript.experienceLevel = PlayerPrefs.GetInt("exp");
-        
     }
 
     private void Start()
@@ -64,6 +65,30 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 0;
             transform.Find("Canvas").transform.Find("Cheat Panel").gameObject.SetActive(true);
         }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            pauseSwitch = !pauseSwitch;
+            transform.Find("Canvas").transform.Find("Pause").gameObject.SetActive(pauseSwitch);
+            transform.Find("Canvas").transform.Find("Weapon").gameObject.SetActive(!pauseSwitch);
+            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.SetActive(!pauseSwitch);
+            if (GameObject.FindGameObjectWithTag("Boss") != null) transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(!pauseSwitch);
+
+            if (pauseSwitch)
+            {
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                Time.timeScale = 1f;
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.F1) && pauseSwitch == false)
+        {
+            transform.Find("Canvas").transform.Find("Scene Mover").gameObject.SetActive(true);
+            transform.Find("Canvas").transform.Find("Weapon").gameObject.SetActive(false);
+            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.SetActive(false);
+            Time.timeScale = 0f;
+        }
     }
 
     private void FixedUpdate()
@@ -72,6 +97,7 @@ public class GameManager : MonoBehaviour
         BossUI();
         BossSpawning();
     }
+
 
     public void IconChange()
     {
@@ -98,6 +124,7 @@ public class GameManager : MonoBehaviour
 
     public void PlayerConditionUI()
     {
+        transform.Find("Canvas").transform.Find("Player Conditions").transform.Find("Level").transform.Find("Level Text").GetComponent<Text>().text = playerMoveScript.experienceLevel.ToString();
         healthbar.fillAmount = playerMoveScript.health / playerMoveScript.maxHealth;
         energybar.fillAmount = playerMoveScript.energy / playerMoveScript.maxEnergy;
         expbar.fillAmount = playerMoveScript.exp / playerMoveScript.maxExp;
@@ -202,21 +229,23 @@ public class GameManager : MonoBehaviour
 
     public void BossUI()
     {
-        if (GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled)
+        if (GameObject.FindGameObjectWithTag("Boss") != null)
         {
-            GameObject bossHealth = transform.Find("Canvas").transform.Find("Boss Health").gameObject;
-            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = new Vector3(0, -450, 0);
-            bossHealth.SetActive(true);
-            EnemyScript enemyScriptBoss = GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>();
-            bossHealth.transform.Find("Name").GetComponent<Text>().text = enemyScriptBoss.bossName;
-            bossHealth.transform.Find("Name Behind").GetComponent<Text>().text = enemyScriptBoss.bossName;
-            bossHealth.transform.Find("Health").transform.Find("Current Health").GetComponent<Image>().fillAmount = enemyScriptBoss.health / enemyScriptBoss.maxHealth;
+            if (GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().life && GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled && pauseSwitch == false)
+            {
+                GameObject bossHealth = transform.Find("Canvas").transform.Find("Boss Health").gameObject;
+                bossHealth.SetActive(true);
+                EnemyScript enemyScriptBoss = GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>();
+                bossHealth.transform.Find("Name").GetComponent<Text>().text = enemyScriptBoss.bossName;
+                bossHealth.transform.Find("Name Behind").GetComponent<Text>().text = enemyScriptBoss.bossName;
+                bossHealth.transform.Find("Health").transform.Find("Current Health").GetComponent<Image>().fillAmount = enemyScriptBoss.health / enemyScriptBoss.maxHealth;
+            }
+            else 
+            {
+                transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(false);
+            }
         }
-        else
-        {
-            transform.Find("Canvas").transform.Find("Boss Health").gameObject.SetActive(false);
-            transform.Find("Canvas").transform.Find("Player Conditions").gameObject.transform.localPosition = Vector3.zero;
-        }
+
     }
 
     private void BossSpawning()
@@ -224,9 +253,23 @@ public class GameManager : MonoBehaviour
         GameObject[] allEnemies = GameObject.FindGameObjectsWithTag("Enemy");
         if (allEnemies.Length <= 0)
         {
-            GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled = true;
-            GameObject.FindGameObjectWithTag("Boss").GetComponent<SpriteRenderer>().enabled = true;
-            GameObject.FindGameObjectWithTag("Boss").transform.Find("Boss Indicator").gameObject.SetActive(true);
+            if (GameObject.FindGameObjectWithTag("Boss") != null)
+            {
+                GameObject.FindGameObjectWithTag("Boss").GetComponent<EnemyScript>().enabled = true;
+                GameObject.FindGameObjectWithTag("Boss").GetComponent<SpriteRenderer>().enabled = true;
+                if (GameObject.FindGameObjectWithTag("Boss").transform.Find("Boss Indicator") != null) GameObject.FindGameObjectWithTag("Boss").transform.Find("Boss Indicator").gameObject.SetActive(true);
+            }
         }
+    }
+
+    private void SceneMover()
+    {
+
+    }
+
+    public void ChangeScene(string sceneName)
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(sceneName);
     }
 }
