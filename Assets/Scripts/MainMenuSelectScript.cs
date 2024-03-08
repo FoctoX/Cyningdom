@@ -14,4 +14,10 @@ public class MainMenuSelectScript : MonoBehaviour
     {
         SceneManager.LoadScene("Loading Screen");
     }
+
+    public void NewGame()
+    {
+        SceneManager.LoadScene("Loading Screen");
+        PlayerPrefs.DeleteAll();
+    }
 }

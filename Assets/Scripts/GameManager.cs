@@ -82,7 +82,7 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 1f;
             }
         }
-        if (Input.GetKeyDown(KeyCode.F1) && pauseSwitch == false)
+        if (Input.GetKeyDown(KeyCode.F1))
         {
             transform.Find("Canvas").transform.Find("Scene Mover").gameObject.SetActive(true);
             transform.Find("Canvas").transform.Find("Weapon").gameObject.SetActive(false);

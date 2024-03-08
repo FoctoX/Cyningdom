@@ -390,7 +390,8 @@ public class PlayerMoveScript : MonoBehaviour
         sprite.material = normal;
 
         if (health <= 0f)
-        {            
+        {
+            PlayerPrefs.SetFloat("exp", 0f);
             life = false;
             canDo = false;
             anim.SetTrigger("dead");

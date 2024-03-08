@@ -7197,7 +7197,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1325076442}
         m_TargetAssemblyTypeName: MainMenuSelectScript, Assembly-CSharp
-        m_MethodName: Play
+        m_MethodName: NewGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12079,7 +12079,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1762855870
 RectTransform:
   m_ObjectHideFlags: 0
